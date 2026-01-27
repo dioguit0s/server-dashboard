@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Meu Dashboard Ubuntu</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; background-color: #f4f4f4; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); max-width: 400px; margin: auto; }
+        h2 { color: #333; border-bottom: 2px solid #007bff; padding-bottom: 10px; }
+        .item { margin: 10px 0; font-size: 1.2em; }
+        .label { font-weight: bold; color: #555; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>📊 Status do Servidor</h2>
+
+    <div class="item">
+        <span class="label">Sistema:</span>
+        <span th:text="${sistemaOperacional}">Carregando...</span>
+    </div>
+
+    <div class="item">
+        <span class="label">CPU:</span>
+        <span th:text="${usoCpu}">0%</span>
+    </div>
+
+    <div class="item">
+        <span class="label">RAM Total:</span>
+        <span th:text="${memoriaTotal}">0 GB</span>
+    </div>
+
+    <div class="item">
+        <span class="label">RAM Livre:</span>
+        <span th:text="${memoriaLivre}">0 GB</span>
+    </div>
+
+    <div style="margin-top: 20px; text-align: center;">
+        <a href="/" style="text-decoration: none; color: white; background: #007bff; padding: 10px 20px; border-radius: 5px;">Atualizar</a>
+    </div>
+</div>
+
+</body>
+</html>
