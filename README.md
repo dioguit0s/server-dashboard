@@ -27,15 +27,12 @@ Nesta fase inicial, o dashboard oferece:
 Este projeto está no ínicio de desenvolvimento servirá como base para implementações avançadas. Abaixo estão as melhorias planejadas e ideias para o futuro:
 
 ### 🔄 Atualização em Tempo Real (Prioridade)
-- [ ] Implementar **WebSockets** ou **AJAX (polling)** para que os dados de CPU e RAM sejam atualizados automaticamente sem precisar recarregar a página.
 - [ ] Adicionar gráficos dinâmicos para visualizar o histórico de consumo nos últimos minutos.
 
 ### 🎨 Design e UX
-- [ ] **Redesign da Interface:** Substituir o CSS básico por um framework moderno para um visual de "Dashboard Administrativo" profissional.
 - [ ] **Responsividade:** Garantir que o painel funcione bem em dispositivos móveis.
 
 ### 💡 Features previstas
-- **Monitoramento de Disco (Storage):** Adicionar visualização do espaço total e livre no HD/SSD (fácil de implementar com OSHI).
 - **Tráfego de Rede:** Mostrar taxas de upload e download em tempo real da interface de rede principal.
 - **Uptime do Sistema:** Exibir há quanto tempo o servidor está ligado.
 - **Informações de Temperatura:** Mostrar a temperatura da CPU (se o hardware permitir acesso aos sensores).
