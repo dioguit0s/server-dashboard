@@ -1,29 +1,43 @@
 package com.homeServer.server_dashboard;
-import com.homeServer.server_dashboard.service.MonitorService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import com.homeServer.server_dashboard.service.MonitorService;
 import org.springframework.web.bind.annotation.GetMapping;
 
-import java.time.LocalDateTime;
-
-@Controller //notacao que diz que é controller
+@Controller
 public class HomeController {
 
     @Autowired
     private MonitorService monitorService;
 
-    @GetMapping("/") //mapeia a URL raiz (http://localhost:8080/)
+    @GetMapping("/")
     public String index(Model model) {
-        String so = monitorService.getOsInfo();
-        String ramTotal = monitorService.getTotalMemory();
-        String ramLivre = monitorService.getFreeMemory();
-        String cpu = monitorService.getCpuUsage();
+        // Coleta de dados
+        double cpuDouble = monitorService.getCpuUsage();
+        double ramDouble = monitorService.getMemoryUsagePercentage();
+        MonitorService.DiskInfo diskInfo = monitorService.getDiskMetrics();
 
-        model.addAttribute("sistemaOperacional", so);
-        model.addAttribute("memoriaTotal", ramTotal);
-        model.addAttribute("memoriaLivre", ramLivre);
-        model.addAttribute("usoCpu", cpu);
+        // Dados puros para exibição
+        model.addAttribute("osName", monitorService.getOsInfo());
+
+        // Dados de CPU
+        model.addAttribute("cpuPercent", String.format("%.1f", cpuDouble));
+        model.addAttribute("cpuInt", (int) cpuDouble); // Para a barra de progresso (CSS width)
+
+        // Dados de RAM
+        model.addAttribute("ramPercent", String.format("%.1f", ramDouble));
+        model.addAttribute("ramInt", (int) ramDouble);
+        model.addAttribute("ramTotal", monitorService.formatMemory(monitorService.getTotalMemory()));
+        model.addAttribute("ramLivre", monitorService.formatMemory(monitorService.getFreeMemory()));
+
+        // Dados de Disco
+        model.addAttribute("diskTotal", diskInfo.total);
+        model.addAttribute("diskUsed", diskInfo.used);
+        model.addAttribute("diskFree", diskInfo.free);
+        model.addAttribute("diskPercent", String.format("%.1f", diskInfo.percent));
+        model.addAttribute("diskInt", (int) diskInfo.percent);
 
         return "home";
     }

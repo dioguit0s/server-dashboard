@@ -5,7 +5,10 @@ import oshi.SystemInfo;
 import oshi.hardware.CentralProcessor;
 import oshi.hardware.GlobalMemory;
 import oshi.hardware.HardwareAbstractionLayer;
+import oshi.software.os.OSFileStore;
 import oshi.software.os.OperatingSystem;
+
+import java.util.List;
 
 @Service
 public class MonitorService {
@@ -20,38 +23,74 @@ public class MonitorService {
         this.os = systemInfo.getOperatingSystem();
     }
 
-    //busca informacoes basicas do sistema operacional
-    public String getOsInfo(){
+    public String getOsInfo() {
         return os.toString();
     }
 
-    //pega a RAM total do sistema
-    public String getTotalMemory() {
+    // Retorna um objeto simples com dados de memória para facilitar no front
+    public double getMemoryUsagePercentage() {
         GlobalMemory memory = hardware.getMemory();
-        long totalBytes = memory.getTotal();
-        return formatBytes(totalBytes);
+        long total = memory.getTotal();
+        long available = memory.getAvailable();
+        return 100d * (total - available) / total;
     }
 
-    //metodo para pegar a ram disponivel
-    public String getFreeMemory() {
-        GlobalMemory memory = hardware.getMemory();
-        long availableBytes = memory.getAvailable();
-        return formatBytes(availableBytes);
+    public String formatMemory(long bytes) {
+        return formatBytes(bytes);
     }
 
-    //Uso da CPU
-    public String getCpuUsage() {
+    public long getTotalMemory() {
+        return hardware.getMemory().getTotal();
+    }
+
+    public long getFreeMemory() {
+        return hardware.getMemory().getAvailable();
+    }
+
+    public double getCpuUsage() {
         CentralProcessor processor = hardware.getProcessor();
-
-        double[] load = processor.getSystemLoadAverage(1);
-        double cpuLoad = processor.getSystemCpuLoad(1000) * 100;
-
-        return String.format("%.2f %%" , cpuLoad);
+        // O delay de 1000ms é necessário para calcular o delta de uso
+        return processor.getSystemCpuLoad(1000) * 100;
     }
 
-    // Função auxiliar para formatar bytes em GB
+    // Nova funcionalidade: Monitoramento de Disco
+    public DiskInfo getDiskMetrics() {
+        List<OSFileStore> fileStores = os.getFileSystem().getFileStores();
+
+        long totalSpace = 0;
+        long usableSpace = 0;
+
+        for (OSFileStore fs : fileStores) {
+            // Filtra partições virtuais ou pequenas demais para evitar sujeira visual
+            if (fs.getTotalSpace() > 1024 * 1024 * 1024) {
+                totalSpace += fs.getTotalSpace();
+                usableSpace += fs.getUsableSpace();
+            }
+        }
+
+        long usedSpace = totalSpace - usableSpace;
+        double usagePercent = 100d * usedSpace / totalSpace;
+
+        return new DiskInfo(formatBytes(totalSpace), formatBytes(usedSpace), formatBytes(usableSpace), usagePercent);
+    }
+
     private String formatBytes(long bytes) {
         double gigabytes = bytes / (1024.0 * 1024.0 * 1024.0);
         return String.format("%.2f GB", gigabytes);
+    }
+
+    // Classe interna auxiliar para transportar dados do disco (DTO)
+    public static class DiskInfo {
+        public String total;
+        public String used;
+        public String free;
+        public double percent;
+
+        public DiskInfo(String total, String used, String free, double percent) {
+            this.total = total;
+            this.used = used;
+            this.free = free;
+            this.percent = percent;
+        }
     }
 }
