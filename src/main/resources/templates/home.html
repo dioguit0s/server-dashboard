@@ -5,9 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Monitoramento do Servidor</title>
 
-    <!-- Importando Bootstrap 5.3 (com suporte nativo a Dark Mode) -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Ícones -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 
     <style>
@@ -64,17 +62,9 @@
             border-bottom: 1px solid #333;
         }
     </style>
-
-    <!-- Script de Auto-Refresh (5 segundos) -->
-    <script>
-        setTimeout(function(){
-            window.location.reload();
-        }, 5000);
-    </script>
 </head>
 <body>
 
-<!-- Navbar -->
 <nav class="navbar navbar-expand-lg navbar-dark navbar-blur mb-5 fixed-top">
     <div class="container">
         <span class="navbar-brand d-flex align-items-center">
@@ -82,17 +72,15 @@
             <span class="fw-bold">Server Monitor</span>
         </span>
         <span class="navbar-text ms-auto text-light small opacity-75">
-            <i class="bi bi-circle-fill text-success me-1" style="font-size: 0.6em;"></i> Online &bull; Atualiza a cada 5s
+            <i class="bi bi-circle-fill text-success me-1" style="font-size: 0.6em;"></i> Online &bull;
         </span>
     </div>
 </nav>
 
-<!-- Espaçador para o menu fixo -->
 <div style="height: 80px;"></div>
 
 <div class="container">
 
-    <!-- Header do Sistema -->
     <div class="row mb-4">
         <div class="col-12">
             <div class="card card-metric shadow-sm">
@@ -112,13 +100,11 @@
 
     <div class="row g-4">
 
-        <!-- CARD CPU -->
         <div class="col-md-4">
             <div class="card card-metric h-100">
                 <div class="card-body p-4">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <span class="card-title-label"><i class="bi bi-cpu me-2"></i>CPU</span>
-                        <!-- Badge dinâmica via CSS inline simples -->
                         <span class="badge rounded-pill"
                               th:classappend="${cpuInt > 80} ? 'text-bg-danger' : 'text-bg-success bg-opacity-25 text-success'">
                             <i class="bi bi-activity"></i> Ativo
@@ -126,12 +112,12 @@
                     </div>
 
                     <div class="d-flex align-items-baseline mb-3">
-                        <span class="display-5 metric-value" th:text="${cpuPercent} + '%'">0%</span>
+                        <span id="cpuPercentText" class="display-5 metric-value" th:text="${cpuPercent} + '%'">0%</span>
                         <span class="ms-2 text-secondary small">de uso</span>
                     </div>
 
                     <div class="progress mb-2">
-                        <div class="progress-bar bg-primary" role="progressbar"
+                        <div id="cpuBar" class="progress-bar bg-primary" role="progressbar"
                              th:style="'width: ' + ${cpuInt} + '%'"
                              th:classappend="${cpuInt > 80} ? 'bg-danger' : (${cpuInt > 50} ? 'bg-warning' : 'bg-primary')">
                         </div>
@@ -141,7 +127,6 @@
             </div>
         </div>
 
-        <!-- CARD RAM -->
         <div class="col-md-4">
             <div class="card card-metric h-100">
                 <div class="card-body p-4">
@@ -150,25 +135,24 @@
                     </div>
 
                     <div class="d-flex align-items-baseline mb-3">
-                        <span class="display-5 metric-value" th:text="${ramPercent} + '%'">0%</span>
+                        <span id="ramPercentText" class="display-5 metric-value" th:text="${ramPercent} + '%'">0%</span>
                         <span class="ms-2 text-secondary small">ocupada</span>
                     </div>
 
                     <div class="progress mb-3">
-                        <div class="progress-bar bg-info" role="progressbar"
+                        <div id="ramBar" class="progress-bar bg-info" role="progressbar"
                              th:style="'width: ' + ${ramInt} + '%'">
                         </div>
                     </div>
 
                     <div class="d-flex justify-content-between text-secondary small">
-                        <span>Livre: <span class="text-white" th:text="${ramLivre}">0GB</span></span>
+                        <span>Livre: <span id="ramFreeText" class="text-white" th:text="${ramLivre}">0GB</span></span>
                         <span>Total: <span class="text-white" th:text="${ramTotal}">0GB</span></span>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- CARD DISCO -->
         <div class="col-md-4">
             <div class="card card-metric h-100">
                 <div class="card-body p-4">
@@ -177,19 +161,19 @@
                     </div>
 
                     <div class="d-flex align-items-baseline mb-3">
-                        <span class="display-5 metric-value" th:text="${diskPercent} + '%'">0%</span>
+                        <span id="diskPercentText" class="display-5 metric-value" th:text="${diskPercent} + '%'">0%</span>
                         <span class="ms-2 text-secondary small">usado</span>
                     </div>
 
                     <div class="progress mb-3">
-                        <div class="progress-bar bg-purple" role="progressbar"
+                        <div id="diskBar" class="progress-bar bg-purple" role="progressbar"
                              style="background-color: #9b59b6;"
                              th:style="'width: ' + ${diskInt} + '%; background-color: #9b59b6;'">
                         </div>
                     </div>
 
                     <div class="d-flex justify-content-between text-secondary small">
-                        <span>Disponível: <span class="text-white" th:text="${diskFree}">0GB</span></span>
+                        <span>Disponível: <span id="diskFreeText" class="text-white" th:text="${diskFree}">0GB</span></span>
                         <span>Total: <span class="text-white" th:text="${diskTotal}">0GB</span></span>
                     </div>
                 </div>
@@ -202,6 +186,34 @@
 <footer class="mt-5 text-center opacity-50 small pb-4">
     <p>&copy; 2026 Ubuntu Dashboard Monitor</p>
 </footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+<script>
+    var socket = new SockJS('/ws');
+    var stompClient = Stomp.over(socket);
+    stompClient.debug = null;
+
+    stompClient.connect({}, function (frame) {
+        stompClient.subscribe('/topic/metrics', function (message) {
+            var data = JSON.parse(message.body);
+
+            // Atualiza CPU
+            document.getElementById('cpuPercentText').innerText = data.cpuPercent + '%';
+            document.getElementById('cpuBar').style.width = data.cpuInt + '%';
+
+            // Atualiza RAM
+            document.getElementById('ramPercentText').innerText = data.ramPercent + '%';
+            document.getElementById('ramBar').style.width = data.ramInt + '%';
+            document.getElementById('ramFreeText').innerText = data.ramLivre;
+
+            // Atualiza Disco
+            document.getElementById('diskPercentText').innerText = data.diskPercent + '%';
+            document.getElementById('diskBar').style.width = data.diskInt + '%';
+            document.getElementById('diskFreeText').innerText = data.diskFree;
+        });
+    });
+</script>
 
 </body>
 </html>
