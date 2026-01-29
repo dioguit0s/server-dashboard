@@ -43,6 +43,8 @@ public class HomeController {
         model.addAttribute("cpuTemp", String.format("%.1f", tempDouble));
         model.addAttribute("cpuTempInt", (int) tempDouble);
 
+        model.addAttribute("uptime", monitorService.getSystemUptime());
+
         return "home";
     }
 }

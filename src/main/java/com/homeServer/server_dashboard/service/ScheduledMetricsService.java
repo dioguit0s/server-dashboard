@@ -22,6 +22,7 @@ public class ScheduledMetricsService {
         double ram = monitorService.getMemoryUsagePercentage();
         MonitorService.DiskInfo disk = monitorService.getDiskMetrics();
         double temp = monitorService.getCpuTemperature();
+        String uptime = monitorService.getSystemUptime();
 
         Map<String, Object> metrics = new HashMap<>();
         metrics.put("cpuPercent", String.format("%.1f", cpu));
@@ -35,6 +36,8 @@ public class ScheduledMetricsService {
 
         metrics.put("cpuTemp", String.format("%.1f", temp));
         metrics.put("cpuTempInt", (int) temp);
+
+        metrics.put("uptime", uptime);
 
         messagingTemplate.convertAndSend("/topic/metrics", (Object) metrics);
     }

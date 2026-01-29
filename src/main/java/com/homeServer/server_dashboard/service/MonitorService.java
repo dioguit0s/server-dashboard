@@ -86,6 +86,20 @@ public class MonitorService {
         return String.format("%.2f GB", gigabytes);
     }
 
+    public String getSystemUptime() {
+        long uptimeSeconds = os.getSystemUptime();
+
+        long days = uptimeSeconds / (24 * 3600);
+        long remainder = uptimeSeconds % (24 * 3600);
+        long hours = remainder / 3600;
+        remainder %= 3600;
+        long minutes = remainder / 60;
+        long seconds = remainder % 60;
+
+        // Retorna algo como "5 dias, 12:30:45"
+        return String.format("%d dias, %02d:%02d:%02d", days, hours, minutes, seconds);
+    }
+
     // Classe interna auxiliar para transportar dados do disco (DTO)
     public static class DiskInfo {
         public String total;

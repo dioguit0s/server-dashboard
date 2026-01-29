@@ -91,8 +91,15 @@
                             <i class="bi bi-ubuntu me-2 text-warning"></i>
                             <span th:text="${osName}">Linux Ubuntu 22.04 LTS</span>
                         </h3>
+
+                        <div class="mt-3 d-flex align-items-center text-secondary">
+                            <i class="bi bi-clock-history me-2 text-info"></i>
+                            <span class="small text-uppercase me-2 fw-bold" style="letter-spacing: 0.5px;">Tempo de Atividade:</span>
+                            <span id="uptimeText" class="text-white font-monospace" th:text="${uptime}">0 dias, 00:00:00</span>
+                        </div>
                     </div>
-                    <i class="bi bi-motherboard fs-1 text-secondary opacity-25"></i>
+
+                    <i class="bi bi-motherboard fs-1 text-secondary opacity-25 d-none d-md-block"></i>
                 </div>
             </div>
         </div>
@@ -202,10 +209,6 @@
                          th:style="'width: ' + ${cpuTempInt} + '%'">
                     </div>
                 </div>
-
-                <div class="text-secondary small">
-                    <span>Status Térmico: <span id="tempStatus" class="text-white">Estável</span></span>
-                </div>
             </div>
         </div>
     </div>
@@ -258,6 +261,9 @@
             document.getElementById('diskPercentText').innerText = data.diskPercent + '%';
             document.getElementById('diskBar').style.width = data.diskInt + '%';
             document.getElementById('diskFreeText').innerText = data.diskFree;
+
+            //Uptime so sistema
+            document.getElementById('uptimeText').innerText = data.uptime;
         });
     });
 </script>
