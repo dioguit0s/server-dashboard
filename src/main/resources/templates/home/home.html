@@ -53,7 +53,8 @@
     </div>
 
     <div class="row g-4">
-        <div class="col-md-4">
+
+        <div class="col-12 col-sm-6 col-xl-3">
             <div class="card card-metric h-100">
                 <div class="card-body p-4">
                     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -64,38 +65,38 @@
                     </div>
                     <div class="d-flex align-items-baseline mb-3">
                         <span id="cpuPercentText" class="display-5 metric-value" th:text="${cpuPercent} + '%'">0%</span>
-                        <span class="ms-2 text-secondary small">de uso</span>
+                        <span class="ms-2 text-secondary small">uso</span>
                     </div>
                     <div class="progress mb-2">
                         <div id="cpuBar" class="progress-bar bg-primary" role="progressbar" th:style="'width: ' + ${cpuInt} + '%'"></div>
                     </div>
-                    <small class="text-secondary">Processamento em tempo real</small>
+                    <small class="text-secondary">Em tempo real</small>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-4">
+        <div class="col-12 col-sm-6 col-xl-3">
             <div class="card card-metric h-100">
                 <div class="card-body p-4">
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <span class="card-title-label"><i class="bi bi-memory me-2"></i>Memória RAM</span>
+                        <span class="card-title-label"><i class="bi bi-memory me-2"></i>RAM</span>
                     </div>
                     <div class="d-flex align-items-baseline mb-3">
                         <span id="ramPercentText" class="display-5 metric-value" th:text="${ramPercent} + '%'">0%</span>
-                        <span class="ms-2 text-secondary small">ocupada</span>
+                        <span class="ms-2 text-secondary small">uso</span>
                     </div>
                     <div class="progress mb-3">
                         <div id="ramBar" class="progress-bar bg-info" role="progressbar" th:style="'width: ' + ${ramInt} + '%'"></div>
                     </div>
                     <div class="d-flex justify-content-between text-secondary small">
-                        <span>Livre: <span id="ramFreeText" class="text-white" th:text="${ramLivre}">0GB</span></span>
-                        <span>Total: <span class="text-white" th:text="${ramTotal}">0GB</span></span>
+                        <span>Livre: <span id="ramFreeText" class="text-white" th:text="${ramLivre}">--</span></span>
+                        <span>Total: <span class="text-white" th:text="${ramTotal}">--</span></span>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-4">
+        <div class="col-12 col-sm-6 col-xl-3">
             <div class="card card-metric h-100">
                 <div class="card-body p-4">
                     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -103,7 +104,7 @@
                     </div>
                     <div class="d-flex align-items-baseline mb-3">
                         <span id="diskPercentText" class="display-5 metric-value" th:text="${diskPercent} + '%'">0%</span>
-                        <span class="ms-2 text-secondary small">usado</span>
+                        <span class="ms-2 text-secondary small">uso</span>
                     </div>
                     <div class="progress mb-3">
                         <div id="diskBar" class="progress-bar" role="progressbar"
@@ -112,23 +113,21 @@
                         </div>
                     </div>
                     <div class="d-flex justify-content-between text-secondary small">
-                        <span>Disponível: <span id="diskFreeText" class="text-white" th:text="${diskFree}">0GB</span></span>
-                        <span>Total: <span class="text-white" th:text="${diskTotal}">0GB</span></span>
+                        <span>Livre: <span id="diskFreeText" class="text-white" th:text="${diskFree}">--</span></span>
+                        <span>Total: <span class="text-white" th:text="${diskTotal}">--</span></span>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-4">
+        <div class="col-12 col-sm-6 col-xl-3">
             <div class="card card-metric h-100">
                 <div class="card-body p-4">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <span class="card-title-label"><i class="bi bi-thermometer-half me-2"></i>Temp</span>
                         <div>
                             <span id="tempStatus" class="me-2 small fw-bold text-white">Estável</span>
-                            <span id="tempBadge" class="badge rounded-pill text-bg-primary bg-opacity-25 text-primary">
-                                <i class="bi bi-fire"></i> Core
-                            </span>
+                            <span id="tempBadge" class="badge rounded-pill text-bg-primary bg-opacity-25 text-primary">Core</span>
                         </div>
                     </div>
                     <div class="d-flex align-items-baseline mb-3">
@@ -141,8 +140,8 @@
                 </div>
             </div>
         </div>
+
     </div>
-</div>
 
 <footer class="mt-5 text-center opacity-50 small pb-4">
     <p>&copy; 2026 Ubuntu Dashboard Monitor</p>
