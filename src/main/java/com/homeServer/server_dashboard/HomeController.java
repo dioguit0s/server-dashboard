@@ -12,39 +12,43 @@ public class HomeController {
     @Autowired
     private MonitorService monitorService;
 
+    // Rota para a Página Principal (Dashboard)
     @GetMapping("/")
     public String index(Model model) {
-        // Coleta de dados
+        // Coleta de dados iniciais
         double cpuDouble = monitorService.getCpuUsage();
         double ramDouble = monitorService.getMemoryUsagePercentage();
         MonitorService.DiskInfo diskInfo = monitorService.getDiskMetrics();
         double tempDouble = monitorService.getCpuTemperature();
 
-        // Dados puros para exibição
+        // Passando dados para o Template
         model.addAttribute("osName", monitorService.getOsInfo());
-
-        // Dados de CPU
         model.addAttribute("cpuPercent", String.format("%.1f", cpuDouble));
-        model.addAttribute("cpuInt", (int) cpuDouble); // Para a barra de progresso (CSS width)
-
-        // Dados de RAM
+        model.addAttribute("cpuInt", (int) cpuDouble);
         model.addAttribute("ramPercent", String.format("%.1f", ramDouble));
         model.addAttribute("ramInt", (int) ramDouble);
         model.addAttribute("ramTotal", monitorService.formatMemory(monitorService.getTotalMemory()));
         model.addAttribute("ramLivre", monitorService.formatMemory(monitorService.getFreeMemory()));
-
-        // Dados de Disco
         model.addAttribute("diskTotal", diskInfo.total);
         model.addAttribute("diskUsed", diskInfo.used);
         model.addAttribute("diskFree", diskInfo.free);
         model.addAttribute("diskPercent", String.format("%.1f", diskInfo.percent));
         model.addAttribute("diskInt", (int) diskInfo.percent);
-
         model.addAttribute("cpuTemp", String.format("%.1f", tempDouble));
         model.addAttribute("cpuTempInt", (int) tempDouble);
-
         model.addAttribute("uptime", monitorService.getSystemUptime());
 
+        // Aponta para templates/home/home.html
         return "home/home";
+    }
+
+    // Rota para a Nova Página de Gráficos
+    @GetMapping("/charts")
+    public String charts(Model model) {
+        // Envia dados básicos caso o socket demore a conectar
+        model.addAttribute("osName", monitorService.getOsInfo());
+
+        // Aponta para templates/home/charts.html
+        return "home/charts";
     }
 }

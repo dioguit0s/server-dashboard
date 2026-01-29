@@ -14,13 +14,15 @@
 
 <nav class="navbar navbar-expand-lg navbar-dark navbar-blur mb-5 fixed-top">
     <div class="container">
-        <span class="navbar-brand d-flex align-items-center">
+        <a class="navbar-brand d-flex align-items-center" href="/">
             <i class="bi bi-terminal-fill me-2 text-success"></i>
             <span class="fw-bold">Server Monitor</span>
-        </span>
-        <span class="navbar-text ms-auto text-light small opacity-75">
-            <i class="bi bi-circle-fill text-success me-1" style="font-size: 0.6em;"></i> Online &bull;
-        </span>
+        </a>
+
+        <div class="navbar-nav ms-auto d-flex flex-row gap-3">
+            <a class="nav-link active fw-bold text-white" href="/">Dashboard</a>
+            <a class="nav-link" href="/charts">Gráficos</a>
+        </div>
     </div>
 </nav>
 
