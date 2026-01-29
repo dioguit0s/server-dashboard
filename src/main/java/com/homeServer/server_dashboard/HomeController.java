@@ -45,6 +45,6 @@ public class HomeController {
 
         model.addAttribute("uptime", monitorService.getSystemUptime());
 
-        return "home";
+        return "home/home";
     }
 }
