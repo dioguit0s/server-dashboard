@@ -240,16 +240,11 @@
             // Lógica visual simples para a temperatura
             var tempVal = data.cpuTempInt;
             var tempBadge = document.getElementById('tempBadge');
-            var tempStatus = document.getElementById('tempStatus');
 
             if (tempVal > 75) {
                 tempBadge.className = 'badge rounded-pill text-bg-danger';
-                tempStatus.innerText = 'Aquecido';
-                tempStatus.className = 'text-danger fw-bold';
             } else {
                 tempBadge.className = 'badge rounded-pill text-bg-primary bg-opacity-25 text-primary';
-                tempStatus.innerText = 'Estável';
-                tempStatus.className = 'text-white';
             }
 
             // Atualiza RAM
