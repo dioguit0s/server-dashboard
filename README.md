@@ -35,16 +35,8 @@ Este projeto está no ínicio de desenvolvimento servirá como base para impleme
 ### 💡 Features previstas
 - **Tráfego de Rede:** Mostrar taxas de upload e download em tempo real da interface de rede principal.
 - **Uptime do Sistema:** Exibir há quanto tempo o servidor está ligado.
-- **Informações de Temperatura:** Mostrar a temperatura da CPU (se o hardware permitir acesso aos sensores).
 - **Lista de Processos:** Uma tabela com os top 5 processos que mais consomem memória ou CPU no momento.
 - **Sistema de Alertas:** Configurar notificações visuais (ou por e-mail/Discord) caso a CPU passe de 90% ou a RAM fique abaixo de 10%.
-
-## 🚀 Como Executar
-
-1. Clone o repositório:
-   ```bash
-   git clone [https://github.com/seu-usuario/server-dashboard.git](https://github.com/seu-usuario/server-dashboard.git)
-Navegue até a pasta do projeto e execute com o Maven Wrapper:
 
 ```Bash
   ./mvnw spring-boot:run
