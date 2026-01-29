@@ -1,46 +1,65 @@
-# Server Dashboard
+Server Dashboard
+Um painel de monitoramento web leve, moderno e em tempo real para servidores Linux. Desenvolvido para quem deseja visualizar a saúde do seu hardware de forma simples e direta, sem configurações complexas.
 
-Um painel de controle web simples e eficiente para monitoramento de recursos de servidor. Este projeto está em desenvolvimento ativo e tem como objetivo fornecer métricas vitais de hardware (CPU, RAM, Sistema Operacional) para administração de sistemas.
+⚡ Funcionalidades
+O Server Dashboard oferece monitoramento contínuo com atualizações instantâneas via WebSocket:
 
-## 🚀 Sobre o Projeto
+Monitoramento em Tempo Real: Atualização automática de métricas a cada segundo (sem refresh na página).
 
-Atualmente, o **Server Dashboard** é uma aplicação MVP (Minimum Viable Product) que exibe um "snapshot" instantâneo do estado do servidor. Ele foi construído utilizando **Java** e **Spring Boot**, aproveitando a biblioteca **OSHI** para extração de dados de baixo nível do hardware.
+Recursos de Hardware:
 
-O objetivo é evoluir desta versão estática para uma central de monitoramento completa e em tempo real.
+CPU: Uso percentual e temperatura do processador.
 
-## 🛠 Tecnologias Utilizadas
+Memória RAM: Uso total, livre e percentual.
 
-* **Java 25**
-* **Spring Boot** (Web, Thymeleaf, DevTools)
-* **OSHI (Operating System and Hardware Information)** - Para coleta de métricas do sistema.
-* **HTML/CSS** - Interface frontend inicial.
+Armazenamento: Monitoramento de espaço em disco (Total/Usado/Livre).
 
-## 📊 Funcionalidades Atuais
+Status do Sistema: Exibe o Uptime (tempo de atividade) e informações do Sistema Operacional.
 
-Nesta fase inicial, o dashboard oferece:
-* **Identificação do Sistema:** Exibe o nome e versão do Sistema Operacional.
-* **Monitoramento de CPU:** Mostra a porcentagem de uso atual do processador.
-* **Monitoramento de RAM:** Exibe a memória total disponível e a memória livre atual formatada em GB.
+Visualização Gráfica: Página dedicada com gráficos históricos (últimos 60 segundos) para CPU, RAM e Temperatura.
 
-## 🗺 Roadmap & Melhorias Futuras
+Interface Responsiva: Design Dark Mode construído com Bootstrap 5, adaptável para desktop e mobile.
 
-Este projeto está no ínicio de desenvolvimento servirá como base para implementações avançadas. Abaixo estão as melhorias planejadas e ideias para o futuro:
+🛠️ Tecnologias
+Backend: Java 25, Spring Boot 4, Spring WebSocket.
 
-### 🔄 Atualização em Tempo Real (Prioridade)
-- [ ] Adicionar gráficos dinâmicos para visualizar o histórico de consumo nos últimos minutos.
+Hardware Info: OSHI (Operating System and Hardware Information).
 
-### 🎨 Design e UX
-- [ ] **Responsividade:** Garantir que o painel funcione bem em dispositivos móveis.
+Frontend: Thymeleaf, Bootstrap 5, Chart.js, SockJS & STOMP.
 
-### 💡 Features previstas
-- **Tráfego de Rede:** Mostrar taxas de upload e download em tempo real da interface de rede principal.
-- **Uptime do Sistema:** Exibir há quanto tempo o servidor está ligado.
-- **Lista de Processos:** Uma tabela com os top 5 processos que mais consomem memória ou CPU no momento.
-- **Sistema de Alertas:** Configurar notificações visuais (ou por e-mail/Discord) caso a CPU passe de 90% ou a RAM fique abaixo de 10%.
+🚀 Como Rodar no Seu Servidor
+Pré-requisitos
+Java JDK 25 instalado.
 
-```Bash
-  ./mvnw spring-boot:run
-```
+Git.
 
-Acesse no navegador:
+Instalação
+Clone o repositório:
+
+Bash
+git clone https://github.com/dioguit0s/server-dashboard.git
+cd server-dashboard
+Execute a aplicação: Utilize o wrapper do Maven incluído para garantir a versão correta das dependências:
+
+Bash
+# Linux
+./mvnw spring-boot:run
+
+Acesse o Painel: Abra seu navegador e vá para:
+
 http://localhost:8080
+
+Dashboard Geral: /
+
+Gráficos: /charts
+
+🗺️ Roadmap
+O projeto está em constante evolução. Abaixo estão as próximas funcionalidades planejadas:
+
+[ ] Tráfego de Rede: Visualização de taxas de upload e download em tempo real das interfaces de rede.
+
+[ ] Lista de Processos: Tabela interativa com os top processos consumindo CPU/Memória.
+
+[ ] Sistema de Alertas: Notificações visuais ou externas (E-mail/Discord) para picos críticos de uso (ex: CPU > 90%).
+
+<p align="center"> Desenvolvido por <a href="https://github.com/dioguit0s">Dioguit0s</a> </p>
