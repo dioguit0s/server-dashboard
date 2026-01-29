@@ -5,6 +5,7 @@ import oshi.SystemInfo;
 import oshi.hardware.CentralProcessor;
 import oshi.hardware.GlobalMemory;
 import oshi.hardware.HardwareAbstractionLayer;
+import oshi.hardware.Sensors;
 import oshi.software.os.OSFileStore;
 import oshi.software.os.OperatingSystem;
 
@@ -16,11 +17,17 @@ public class MonitorService {
     private final SystemInfo systemInfo;
     private final HardwareAbstractionLayer hardware;
     private final OperatingSystem os;
+    private final Sensors sensors;
 
     public MonitorService() {
         this.systemInfo = new SystemInfo();
         this.hardware = systemInfo.getHardware();
         this.os = systemInfo.getOperatingSystem();
+        this.sensors = hardware.getSensors();
+    }
+
+    public double getCpuTemperature() {
+        return sensors.getCpuTemperature();
     }
 
     public String getOsInfo() {

@@ -18,6 +18,7 @@ public class HomeController {
         double cpuDouble = monitorService.getCpuUsage();
         double ramDouble = monitorService.getMemoryUsagePercentage();
         MonitorService.DiskInfo diskInfo = monitorService.getDiskMetrics();
+        double tempDouble = monitorService.getCpuTemperature();
 
         // Dados puros para exibição
         model.addAttribute("osName", monitorService.getOsInfo());
@@ -38,6 +39,9 @@ public class HomeController {
         model.addAttribute("diskFree", diskInfo.free);
         model.addAttribute("diskPercent", String.format("%.1f", diskInfo.percent));
         model.addAttribute("diskInt", (int) diskInfo.percent);
+
+        model.addAttribute("cpuTemp", String.format("%.1f", tempDouble));
+        model.addAttribute("cpuTempInt", (int) tempDouble);
 
         return "home";
     }

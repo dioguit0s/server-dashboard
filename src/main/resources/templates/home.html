@@ -181,6 +181,34 @@
         </div>
 
     </div>
+    <div class="col-md-4">
+        <div class="card card-metric h-100">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="card-title-label"><i class="bi bi-thermometer-half me-2"></i>Temperatura</span>
+                    <span id="tempBadge" class="badge rounded-pill"
+                          th:classappend="${cpuTempInt > 75} ? 'text-bg-danger' : 'text-bg-primary bg-opacity-25 text-primary'">
+                            <i class="bi bi-fire"></i> Core
+                        </span>
+                </div>
+
+                <div class="d-flex align-items-baseline mb-3">
+                    <span id="tempText" class="display-5 metric-value" th:text="${cpuTemp} + '°C'">0.0°C</span>
+                    <span class="ms-2 text-secondary small">Celsius</span>
+                </div>
+
+                <div class="progress mb-3">
+                    <div id="tempBar" class="progress-bar bg-warning" role="progressbar"
+                         th:style="'width: ' + ${cpuTempInt} + '%'">
+                    </div>
+                </div>
+
+                <div class="text-secondary small">
+                    <span>Status Térmico: <span id="tempStatus" class="text-white">Estável</span></span>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <footer class="mt-5 text-center opacity-50 small pb-4">
@@ -201,6 +229,25 @@
             // Atualiza CPU
             document.getElementById('cpuPercentText').innerText = data.cpuPercent + '%';
             document.getElementById('cpuBar').style.width = data.cpuInt + '%';
+
+            // Atualiza Temperatura [NOVO]
+            document.getElementById('tempText').innerText = data.cpuTemp + '°C';
+            document.getElementById('tempBar').style.width = data.cpuTempInt + '%';
+
+            // Lógica visual simples para a temperatura
+            var tempVal = data.cpuTempInt;
+            var tempBadge = document.getElementById('tempBadge');
+            var tempStatus = document.getElementById('tempStatus');
+
+            if (tempVal > 75) {
+                tempBadge.className = 'badge rounded-pill text-bg-danger';
+                tempStatus.innerText = 'Aquecido';
+                tempStatus.className = 'text-danger fw-bold';
+            } else {
+                tempBadge.className = 'badge rounded-pill text-bg-primary bg-opacity-25 text-primary';
+                tempStatus.innerText = 'Estável';
+                tempStatus.className = 'text-white';
+            }
 
             // Atualiza RAM
             document.getElementById('ramPercentText').innerText = data.ramPercent + '%';
