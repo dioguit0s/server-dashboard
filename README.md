@@ -62,4 +62,4 @@ O projeto está em constante evolução. Abaixo estão as próximas funcionalida
 
 [ ] Sistema de Alertas: Notificações visuais ou externas (E-mail/Discord) para picos críticos de uso (ex: CPU > 90%).
 
-<p align="center"> Desenvolvido por <a href="https://github.com/dioguit0s">Dioguit0s</a> </p>
+<p align="center"> Desenvolvido por <a href="https://github.com/dioguit0s">Diogo</a> </p>
