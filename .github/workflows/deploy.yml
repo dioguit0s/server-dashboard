@@ -1,20 +1,12 @@
 name: Deploy to Server
 
-
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "main" ]
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted  # <--- MUDANÇA IMPORTANTE: Roda no seu PC
     steps:
-      - name: Executar comando SSH remoto
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: 22
-          script: |
-            /deploy-bash.sh
+      - name: Executar Script de Deploy
+        run: ~/deploy.sh  # Roda direto, sem SSH
