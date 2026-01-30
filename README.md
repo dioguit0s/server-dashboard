@@ -1,46 +1,68 @@
 # Server Dashboard
 
-Um painel de controle web simples e eficiente para monitoramento de recursos de servidor. Este projeto está em desenvolvimento ativo e tem como objetivo fornecer métricas vitais de hardware (CPU, RAM, Sistema Operacional) para administração de sistemas.
+![Java](https://img.shields.io/badge/Java-25-orange) ![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.x-green) ![Status](https://img.shields.io/badge/Status-Active-brightgreen)
 
-## 🚀 Sobre o Projeto
+Um painel de monitoramento web leve, moderno e em tempo real para servidores Linux. Desenvolvido para quem deseja visualizar a saúde do seu hardware de forma simples e direta, sem configurações complexas.
 
-Atualmente, o **Server Dashboard** é uma aplicação MVP (Minimum Viable Product) que exibe um "snapshot" instantâneo do estado do servidor. Ele foi construído utilizando **Java** e **Spring Boot**, aproveitando a biblioteca **OSHI** para extração de dados de baixo nível do hardware.
+## ⚡ Funcionalidades
 
-O objetivo é evoluir desta versão estática para uma central de monitoramento completa e em tempo real.
+O **Server Dashboard** oferece monitoramento contínuo com atualizações instantâneas via WebSocket:
 
-## 🛠 Tecnologias Utilizadas
+* **Monitoramento em Tempo Real:** Atualização automática de métricas a cada segundo (sem *refresh* na página).
+* **Recursos de Hardware:**
+    * **CPU:** Uso percentual e temperatura do processador.
+    * **Memória RAM:** Uso total, livre e percentual.
+    * **Armazenamento:** Monitoramento de espaço em disco (Total/Usado/Livre).
+* **Status do Sistema:** Exibe o *Uptime* (tempo de atividade) e informações do Sistema Operacional.
+* **Visualização Gráfica:** Página dedicada com gráficos históricos (últimos 60 segundos) para CPU, RAM e Temperatura.
+* **Interface Responsiva:** Design *Dark Mode* construído com Bootstrap 5, adaptável para desktop e mobile.
 
-* **Java 25**
-* **Spring Boot** (Web, Thymeleaf, DevTools)
-* **OSHI (Operating System and Hardware Information)** - Para coleta de métricas do sistema.
-* **HTML/CSS** - Interface frontend inicial.
+## 🛠️ Tecnologias
 
-## 📊 Funcionalidades Atuais
+* **Backend:** Java 25, Spring Boot 4, Spring WebSocket.
+* **Hardware Info:** OSHI (Operating System and Hardware Information).
+* **Frontend:** Thymeleaf, Bootstrap 5, Chart.js, SockJS & STOMP.
 
-Nesta fase inicial, o dashboard oferece:
-* **Identificação do Sistema:** Exibe o nome e versão do Sistema Operacional.
-* **Monitoramento de CPU:** Mostra a porcentagem de uso atual do processador.
-* **Monitoramento de RAM:** Exibe a memória total disponível e a memória livre atual formatada em GB.
+## 🚀 Como Rodar no Seu Servidor
 
-## 🗺 Roadmap & Melhorias Futuras
+### Pré-requisitos
+* Java JDK 25 instalado.
+* Git.
 
-Este projeto está no ínicio de desenvolvimento servirá como base para implementações avançadas. Abaixo estão as melhorias planejadas e ideias para o futuro:
+### Instalação
 
-### 🔄 Atualização em Tempo Real (Prioridade)
-- [ ] Adicionar gráficos dinâmicos para visualizar o histórico de consumo nos últimos minutos.
+1.  **Clone o repositório:**
+    ```bash
+    git clone [https://github.com/dioguit0s/server-dashboard.git](https://github.com/dioguit0s/server-dashboard.git)
+    cd server-dashboard
+    ```
 
-### 🎨 Design e UX
-- [ ] **Responsividade:** Garantir que o painel funcione bem em dispositivos móveis.
+2.  **Execute a aplicação:**
+    Utilize o *wrapper* do Maven incluído para garantir a versão correta das dependências:
+    ```bash
+    # Linux / macOS
+    ./mvnw spring-boot:run
 
-### 💡 Features previstas
-- **Tráfego de Rede:** Mostrar taxas de upload e download em tempo real da interface de rede principal.
-- **Uptime do Sistema:** Exibir há quanto tempo o servidor está ligado.
-- **Lista de Processos:** Uma tabela com os top 5 processos que mais consomem memória ou CPU no momento.
-- **Sistema de Alertas:** Configurar notificações visuais (ou por e-mail/Discord) caso a CPU passe de 90% ou a RAM fique abaixo de 10%.
+    # Windows
+    mvnw.cmd spring-boot:run
+    ```
 
-```Bash
-  ./mvnw spring-boot:run
-```
+3.  **Acesse o Painel:**
+    Abra seu navegador e vá para:
+    > **http://localhost:8080**
 
-Acesse no navegador:
-http://localhost:8080
+    * **Dashboard Geral:** `/`
+    * **Gráficos:** `/charts`
+
+## 🗺️ Roadmap
+
+O projeto está em constante evolução. Abaixo estão as próximas funcionalidades planejadas:
+
+- [ ] **Tráfego de Rede:** Visualização de taxas de upload e download em tempo real das interfaces de rede.
+- [ ] **Lista de Processos:** Tabela interativa com os top processos consumindo CPU/Memória.
+- [ ] **Sistema de Alertas:** Notificações visuais ou externas (E-mail/Discord) para picos críticos de uso (ex: CPU > 90%).
+
+---
+<p align="center">
+  Desenvolvido por <a href="https://github.com/dioguit0s">Diogo</a>
+</p>
