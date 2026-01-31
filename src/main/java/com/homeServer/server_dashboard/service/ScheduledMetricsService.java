@@ -23,6 +23,7 @@ public class ScheduledMetricsService {
         MonitorService.DiskInfo disk = monitorService.getDiskMetrics();
         double temp = monitorService.getCpuTemperature();
         String uptime = monitorService.getSystemUptime();
+        MonitorService.NetworkInfo net = monitorService.getNetworkMetrics();
 
         Map<String, Object> metrics = new HashMap<>();
         metrics.put("cpuPercent", String.format("%.1f", cpu));
@@ -33,11 +34,11 @@ public class ScheduledMetricsService {
         metrics.put("diskPercent", String.format("%.1f", disk.percent));
         metrics.put("diskInt", (int) disk.percent);
         metrics.put("diskFree", disk.free);
-
         metrics.put("cpuTemp", String.format("%.1f", temp));
         metrics.put("cpuTempInt", (int) temp);
-
         metrics.put("uptime", uptime);
+        metrics.put("netDown", net.downloadRate);
+        metrics.put("netUp", net.uploadRate);
 
         messagingTemplate.convertAndSend("/topic/metrics", (Object) metrics);
     }

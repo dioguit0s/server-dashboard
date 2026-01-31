@@ -5,6 +5,7 @@ import oshi.SystemInfo;
 import oshi.hardware.CentralProcessor;
 import oshi.hardware.GlobalMemory;
 import oshi.hardware.HardwareAbstractionLayer;
+import oshi.hardware.NetworkIF;
 import oshi.hardware.Sensors;
 import oshi.software.os.OSFileStore;
 import oshi.software.os.OperatingSystem;
@@ -19,6 +20,9 @@ public class MonitorService {
     private final OperatingSystem os;
     private final Sensors sensors;
 
+    private long prevBytesRecv = 0;
+    private long prevBytesSent = 0;
+
     public MonitorService() {
         this.systemInfo = new SystemInfo();
         this.hardware = systemInfo.getHardware();
@@ -26,59 +30,75 @@ public class MonitorService {
         this.sensors = hardware.getSensors();
     }
 
-    public double getCpuTemperature() {
-        return sensors.getCpuTemperature();
-    }
+    public double getCpuTemperature() { return sensors.getCpuTemperature(); }
+    public String getOsInfo() { return os.toString(); }
 
-    public String getOsInfo() {
-        return os.toString();
-    }
-
-    // Retorna um objeto simples com dados de memória para facilitar no front
     public double getMemoryUsagePercentage() {
         GlobalMemory memory = hardware.getMemory();
-        long total = memory.getTotal();
-        long available = memory.getAvailable();
-        return 100d * (total - available) / total;
+        return 100d * (memory.getTotal() - memory.getAvailable()) / memory.getTotal();
     }
 
-    public String formatMemory(long bytes) {
-        return formatBytes(bytes);
-    }
-
-    public long getTotalMemory() {
-        return hardware.getMemory().getTotal();
-    }
-
-    public long getFreeMemory() {
-        return hardware.getMemory().getAvailable();
-    }
+    public String formatMemory(long bytes) { return formatBytes(bytes); }
+    public long getTotalMemory() { return hardware.getMemory().getTotal(); }
+    public long getFreeMemory() { return hardware.getMemory().getAvailable(); }
 
     public double getCpuUsage() {
         CentralProcessor processor = hardware.getProcessor();
-        // O delay de 1000ms é necessário para calcular o delta de uso
         return processor.getSystemCpuLoad(1000) * 100;
     }
 
-    // Nova funcionalidade: Monitoramento de Disco
     public DiskInfo getDiskMetrics() {
         List<OSFileStore> fileStores = os.getFileSystem().getFileStores();
-
         long totalSpace = 0;
         long usableSpace = 0;
-
         for (OSFileStore fs : fileStores) {
-            // Filtra partições virtuais ou pequenas demais para evitar sujeira visual
             if (fs.getTotalSpace() > 1024 * 1024 * 1024) {
                 totalSpace += fs.getTotalSpace();
                 usableSpace += fs.getUsableSpace();
             }
         }
+        return new DiskInfo(formatBytes(totalSpace), formatBytes(totalSpace - usableSpace), formatBytes(usableSpace), 100d * (totalSpace - usableSpace) / totalSpace);
+    }
 
-        long usedSpace = totalSpace - usableSpace;
-        double usagePercent = 100d * usedSpace / totalSpace;
+    public NetworkInfo getNetworkMetrics() {
+        List<NetworkIF> networkIFs = hardware.getNetworkIFs();
 
-        return new DiskInfo(formatBytes(totalSpace), formatBytes(usedSpace), formatBytes(usableSpace), usagePercent);
+        long currentBytesRecv = 0;
+        long currentBytesSent = 0;
+
+        for (NetworkIF net : networkIFs) {
+            // Atualiza os atributos da interface
+            net.updateAttributes();
+
+            // FILTRO: Só processa se tiver IPv4 (conectada) e não for Loopback (localhost)
+            // Isso ignora adaptadores Bluetooth vazios, Docker inativo, etc.
+            if (net.getIPv4addr().length > 0 && !net.getDisplayName().toLowerCase().contains("loopback")) {
+                currentBytesRecv += net.getBytesRecv();
+                currentBytesSent += net.getBytesSent();
+
+                // Opcional: Descomente para ver no console qual placa está sendo lida
+                // System.out.println("Lendo interface: " + net.getDisplayName());
+            }
+        }
+
+        // Se for a primeira execução ou os bytes zerarem (reinício de interface), reseta
+        if (prevBytesRecv == 0 || currentBytesRecv < prevBytesRecv) {
+            prevBytesRecv = currentBytesRecv;
+            prevBytesSent = currentBytesSent;
+            return new NetworkInfo("0 B/s", "0 B/s");
+        }
+
+        long downloadSpeed = currentBytesRecv - prevBytesRecv;
+        long uploadSpeed = currentBytesSent - prevBytesSent;
+
+        // Atualiza o "passado" para a próxima execução
+        prevBytesRecv = currentBytesRecv;
+        prevBytesSent = currentBytesSent;
+
+        return new NetworkInfo(
+                formatRate(downloadSpeed),
+                formatRate(uploadSpeed)
+        );
     }
 
     private String formatBytes(long bytes) {
@@ -86,32 +106,32 @@ public class MonitorService {
         return String.format("%.2f GB", gigabytes);
     }
 
+    private String formatRate(long bytesPerSecond) {
+        if (bytesPerSecond < 1024) return bytesPerSecond + " B/s";
+        double kb = bytesPerSecond / 1024.0;
+        if (kb < 1024) return String.format("%.1f KB/s", kb);
+        double mb = kb / 1024.0;
+        return String.format("%.1f MB/s", mb);
+    }
+
     public String getSystemUptime() {
         long uptimeSeconds = os.getSystemUptime();
-
         long days = uptimeSeconds / (24 * 3600);
-        long remainder = uptimeSeconds % (24 * 3600);
-        long hours = remainder / 3600;
-        remainder %= 3600;
-        long minutes = remainder / 60;
-        long seconds = remainder % 60;
-
-        // Retorna algo como "5 dias, 12:30:45"
+        long hours = (uptimeSeconds % (24 * 3600)) / 3600;
+        long minutes = (uptimeSeconds % 3600) / 60;
+        long seconds = uptimeSeconds % 60;
         return String.format("%d dias, %02d:%02d:%02d", days, hours, minutes, seconds);
     }
 
-    // Classe interna auxiliar para transportar dados do disco (DTO)
     public static class DiskInfo {
-        public String total;
-        public String used;
-        public String free;
+        public String total, used, free;
         public double percent;
+        public DiskInfo(String t, String u, String f, double p) { total = t; used = u; free = f; percent = p; }
+    }
 
-        public DiskInfo(String total, String used, String free, double percent) {
-            this.total = total;
-            this.used = used;
-            this.free = free;
-            this.percent = percent;
-        }
+    public static class NetworkInfo {
+        public String downloadRate;
+        public String uploadRate;
+        public NetworkInfo(String down, String up) { this.downloadRate = down; this.uploadRate = up; }
     }
 }

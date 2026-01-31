@@ -50,5 +50,11 @@ stompClient.connect({}, function (frame) {
 
         // Atualiza Uptime
         document.getElementById('uptimeText').innerText = data.uptime;
+
+        var elNetDown = document.getElementById('netDownText');
+        var elNetup = document.getElementById('netUpText');
+
+        if(elNetDown) elNetDown.innerText = data.netDown;
+        if(elNetup) elNetup.innerText = data.netUp;
     });
 });
