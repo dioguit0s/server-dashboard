@@ -3,7 +3,6 @@
 ![Java](https://img.shields.io/badge/Java-25-orange?style=for-the-badge&logo=openjdk)
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.0-green?style=for-the-badge&logo=springboot)
 ![Status](https://img.shields.io/badge/Status-Active-brightgreen?style=for-the-badge)
-![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)
 
 > **Uma solução de monitoramento de infraestrutura leve e em tempo real, projetada para servidores Linux.**
 
