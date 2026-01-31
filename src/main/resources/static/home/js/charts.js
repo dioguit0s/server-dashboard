@@ -1,61 +1,100 @@
-/* src/main/resources/static/js/charts.js */
 
-// Configuração comum para os gráficos (visual dark)
+Chart.defaults.color = '#64748b';
+Chart.defaults.font.family = "'Inter', sans-serif";
+
 const commonOptions = {
     responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+        legend: { display: false },
+        tooltip: {
+            backgroundColor: '#1e293b',
+            titleColor: '#f1f5f9',
+            bodyColor: '#cbd5e1',
+            borderColor: '#334155',
+            borderWidth: 1,
+            padding: 10,
+            displayColors: false,
+            callbacks: {
+                label: function(context) {
+                    return context.parsed.y + (context.dataset.label.includes('Temp') ? ' °C' : ' %');
+                }
+            }
+        }
+    },
     scales: {
         x: {
-            display: false, // Esconde os labels de tempo para ficar mais limpo
+            display: false,
             grid: { display: false }
         },
         y: {
             beginAtZero: true,
-            grid: { color: '#333' }, // Linhas da grade escuras
-            ticks: { color: '#aaa' }
+            grid: {
+                color: '#334155',
+                drawBorder: false,
+                tickLength: 0
+            },
+            border: { display: false }
         }
     },
-    plugins: {
-        legend: { display: false } // Esconde legenda pois o título do card já diz o que é
+    elements: {
+        point: {
+            radius: 0,
+            hitRadius: 10,
+            hoverRadius: 4
+        },
+        line: {
+            borderWidth: 2,
+            tension: 0.4
+        }
     },
-    animation: { duration: 0 } // Desativa animação de "load" a cada update para ficar fluido
+    animation: { duration: 0 }
 };
 
-// Inicialização dos Gráficos
+function createGradient(ctx, colorHex) {
+    const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+    gradient.addColorStop(0, colorHex + '80'); // 50% opacity
+    gradient.addColorStop(1, colorHex + '00'); // 0% opacity
+    return gradient;
+}
+
 const ctxCpu = document.getElementById('cpuChart').getContext('2d');
+const cpuGradient = createGradient(ctxCpu, '#3b82f6'); // Blue
+
 const cpuChart = new Chart(ctxCpu, {
     type: 'line',
     data: {
         labels: [],
         datasets: [{
-            label: 'CPU %',
+            label: 'CPU',
             data: [],
-            borderColor: '#0d6efd', // Bootstrap Primary Blue
-            backgroundColor: 'rgba(13, 110, 253, 0.1)',
-            fill: true,
-            tension: 0.3
+            borderColor: '#3b82f6',
+            backgroundColor: cpuGradient,
+            fill: true
         }]
     },
     options: {
         ...commonOptions,
         scales: {
             ...commonOptions.scales,
-            y: { ...commonOptions.scales.y, max: 100 } // CPU vai até 100%
+            y: { ...commonOptions.scales.y, max: 100 }
         }
     }
 });
 
 const ctxRam = document.getElementById('ramChart').getContext('2d');
+const ramGradient = createGradient(ctxRam, '#8b5cf6'); // Violet
+
 const ramChart = new Chart(ctxRam, {
     type: 'line',
     data: {
         labels: [],
         datasets: [{
-            label: 'RAM %',
+            label: 'RAM',
             data: [],
-            borderColor: '#0dcaf0', // Bootstrap Info Cyan
-            backgroundColor: 'rgba(13, 202, 240, 0.1)',
-            fill: true,
-            tension: 0.3
+            borderColor: '#8b5cf6',
+            backgroundColor: ramGradient,
+            fill: true
         }]
     },
     options: {
@@ -68,32 +107,31 @@ const ramChart = new Chart(ctxRam, {
 });
 
 const ctxTemp = document.getElementById('tempChart').getContext('2d');
+const tempGradient = createGradient(ctxTemp, '#f59e0b'); // Amber
+
 const tempChart = new Chart(ctxTemp, {
     type: 'line',
     data: {
         labels: [],
         datasets: [{
-            label: 'Temp °C',
+            label: 'Temp',
             data: [],
-            borderColor: '#ffc107', // Bootstrap Warning Yellow
-            backgroundColor: 'rgba(255, 193, 7, 0.1)',
-            fill: true,
-            tension: 0.3
+            borderColor: '#f59e0b',
+            backgroundColor: tempGradient,
+            fill: true
         }]
     },
     options: commonOptions
 });
 
-// Função para adicionar dados e manter janela de tempo (ex: 60 pontos)
 function addData(chart, label, data) {
     chart.data.labels.push(label);
     chart.data.datasets.forEach((dataset) => {
         dataset.data.push(data);
     });
 
-    // Mantém apenas os últimos 60 pontos (60 segundos)
     if (chart.data.labels.length > 60) {
-        chart.data.labels.shift(); // Remove o mais antigo
+        chart.data.labels.shift();
         chart.data.datasets.forEach((dataset) => {
             dataset.data.shift();
         });
@@ -101,7 +139,6 @@ function addData(chart, label, data) {
     chart.update();
 }
 
-// Conexão WebSocket (Igual ao da Home, mas chama a função de gráfico)
 var socket = new SockJS('/ws');
 var stompClient = Stomp.over(socket);
 stompClient.debug = null;
@@ -111,14 +148,12 @@ stompClient.connect({}, function (frame) {
         var data = JSON.parse(message.body);
         var now = new Date().toLocaleTimeString();
 
-        // Atualiza os gráficos
         addData(cpuChart, now, data.cpuInt);
         addData(ramChart, now, data.ramInt);
         addData(tempChart, now, data.cpuTempInt);
 
-        // Atualiza textos rápidos nos cards (opcional, para ter o valor numérico junto)
-        document.getElementById('cpuValue').innerText = data.cpuPercent + '%';
-        document.getElementById('ramValue').innerText = data.ramPercent + '%';
-        document.getElementById('tempValue').innerText = data.cpuTemp + '°C';
+        if(document.getElementById('cpuValue')) document.getElementById('cpuValue').innerText = data.cpuPercent + '%';
+        if(document.getElementById('ramValue')) document.getElementById('ramValue').innerText = data.ramPercent + '%';
+        if(document.getElementById('tempValue')) document.getElementById('tempValue').innerText = data.cpuTemp + '°C';
     });
 });
