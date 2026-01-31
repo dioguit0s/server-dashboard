@@ -38,17 +38,19 @@ public class HomeController {
         model.addAttribute("cpuTempInt", (int) tempDouble);
         model.addAttribute("uptime", monitorService.getSystemUptime());
 
-        // Aponta para templates/home/home.html
         return "home/home";
     }
 
-    // Rota para a Nova Página de Gráficos
     @GetMapping("/charts")
     public String charts(Model model) {
-        // Envia dados básicos caso o socket demore a conectar
         model.addAttribute("osName", monitorService.getOsInfo());
 
-        // Aponta para templates/home/charts.html
         return "home/charts";
+    }
+
+    @GetMapping("/services")
+    public String services(Model model) {
+        model.addAttribute("osName", monitorService.getOsInfo());
+        return "home/services";
     }
 }

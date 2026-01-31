@@ -9,8 +9,9 @@ import oshi.hardware.NetworkIF;
 import oshi.hardware.Sensors;
 import oshi.software.os.OSFileStore;
 import oshi.software.os.OperatingSystem;
-
 import java.util.List;
+import java.net.InetSocketAddress;
+import java.net.Socket;
 
 @Service
 public class MonitorService {
@@ -121,6 +122,15 @@ public class MonitorService {
         long minutes = (uptimeSeconds % 3600) / 60;
         long seconds = uptimeSeconds % 60;
         return String.format("%d dias, %02d:%02d:%02d", days, hours, minutes, seconds);
+    }
+
+    public boolean isServiceUp(int port){
+        try(Socket socket = new Socket()) {
+            socket.connect(new InetSocketAddress("localhost", port), 200);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public static class DiskInfo {
