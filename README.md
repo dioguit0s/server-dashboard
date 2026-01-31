@@ -58,9 +58,8 @@ O **Server Dashboard** oferece monitoramento contínuo com atualizações instan
 
 O projeto está em constante evolução. Abaixo estão as próximas funcionalidades planejadas:
 
-- [ ] **Tráfego de Rede:** Visualização de taxas de upload e download em tempo real das interfaces de rede.
-- [ ] **Lista de Processos:** Tabela interativa com os top processos consumindo CPU/Memória.
-- [ ] **Sistema de Alertas:** Notificações visuais ou externas (E-mail/Discord) para picos críticos de uso (ex: CPU > 90%).
+- [ ] **Monitoramento de containers:** Listar quantos containers estão Running, Stopped e Paused, e talvez listar os nomes dos ativos.
+- [ ] **Health check de serviços:** Um painel com Cards coloridos (Verde/Vermelho) indicando se um serviço específico está rodando.
 
 ---
 <p align="center">
