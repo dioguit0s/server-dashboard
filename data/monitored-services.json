@@ -1,0 +1,10 @@
+[ {
+  "name" : "Immich",
+  "port" : 2283
+}, {
+  "name" : "Dashboard",
+  "port" : 8080
+}, {
+  "name" : "Discord Bot",
+  "port" : 3000
+} ]

@@ -53,4 +53,10 @@ public class HomeController {
         model.addAttribute("osName", monitorService.getOsInfo());
         return "home/services";
     }
+
+    @GetMapping("/processes")
+    public String processes(Model model) {
+        model.addAttribute("osName", monitorService.getOsInfo());
+        return "home/processes";
+    }
 }

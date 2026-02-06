@@ -8,7 +8,10 @@ import oshi.hardware.HardwareAbstractionLayer;
 import oshi.hardware.NetworkIF;
 import oshi.hardware.Sensors;
 import oshi.software.os.OSFileStore;
+import oshi.software.os.OSProcess;
 import oshi.software.os.OperatingSystem;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -130,6 +133,62 @@ public class MonitorService {
             return true;
         } catch (Exception e) {
             return false;
+        }
+    }
+
+    /**
+     * Retorna os top N processos ordenados por CPU ou memória (RSS).
+     * @param sortBy "cpu" ou "ram"
+     * @param limit quantidade máxima (ex: 15)
+     */
+    public List<ProcessInfo> getTopProcesses(String sortBy, int limit) {
+        var comparator = "ram".equalsIgnoreCase(sortBy)
+                ? OperatingSystem.ProcessSorting.RSS_DESC
+                : OperatingSystem.ProcessSorting.CPU_DESC;
+
+        List<OSProcess> procs = os.getProcesses(null, comparator, limit);
+        List<ProcessInfo> result = new ArrayList<>();
+
+        long totalMem = hardware.getMemory().getTotal();
+        int cpuCount = hardware.getProcessor().getLogicalProcessorCount();
+
+        for (OSProcess p : procs) {
+            if (p == null || p.getState() == OSProcess.State.INVALID) continue;
+
+            String name = p.getName();
+            if (name == null || name.isBlank()) name = "(sem nome)";
+            if (name.length() > 40) name = name.substring(0, 37) + "...";
+
+            double cpuPercent = p.getProcessCpuLoadCumulative() * 100;
+            if (cpuCount > 0) cpuPercent = Math.min(100, cpuPercent / cpuCount);
+
+            long rss = p.getResidentSetSize();
+            double ramPercent = totalMem > 0 ? 100d * rss / totalMem : 0;
+
+            result.add(new ProcessInfo(
+                    name,
+                    p.getProcessID(),
+                    String.format("%.1f", cpuPercent),
+                    String.format("%.1f", ramPercent),
+                    formatBytes(rss)
+            ));
+        }
+        return result;
+    }
+
+    public static class ProcessInfo {
+        public final String name;
+        public final int pid;
+        public final String cpuPercent;
+        public final String ramPercent;
+        public final String ramFormatted;
+
+        public ProcessInfo(String name, int pid, String cpuPercent, String ramPercent, String ramFormatted) {
+            this.name = name;
+            this.pid = pid;
+            this.cpuPercent = cpuPercent;
+            this.ramPercent = ramPercent;
+            this.ramFormatted = ramFormatted;
         }
     }
 
