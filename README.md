@@ -16,6 +16,7 @@ O objetivo principal deste projeto é demonstrar a implementação de uma arquit
 
 A aplicação utiliza **WebSockets (STOMP)** para garantir que os dados sejam "empurrados" (*push*) para o cliente, garantindo atualização instantânea sem a necessidade de *polling* constante.
 
+
 * **Telemetria em Tempo Real:** Atualização de métricas via WebSocket a cada segundo.
 * **Monitoramento de Hardware (OSHI):**
     * **CPU:** Carga do sistema e monitoramento térmico.
