@@ -1,35 +1,54 @@
 # Server Dashboard
 
-![Java](https://img.shields.io/badge/Java-25-orange) ![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.x-green) ![Status](https://img.shields.io/badge/Status-Active-brightgreen)
+![Java](https://img.shields.io/badge/Java-25-orange?style=for-the-badge&logo=openjdk)
+![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.0-green?style=for-the-badge&logo=springboot)
+![Status](https://img.shields.io/badge/Status-Active-brightgreen?style=for-the-badge)
 
-Um painel de monitoramento web leve, moderno e em tempo real para servidores Linux. Desenvolvido para quem deseja visualizar a saúde do seu hardware de forma simples e direta, sem configurações complexas.
+> **Uma solução de monitoramento de infraestrutura leve e em tempo real, projetada para servidores Linux.**
 
-## ⚡ Funcionalidades
+## 📖 Sobre o Projeto
 
-O **Server Dashboard** oferece monitoramento contínuo com atualizações instantâneas via WebSocket:
+O **Server Dashboard** é uma aplicação de código aberto desenvolvida como parte do meu portfólio acadêmico no curso de **Engenharia da Computação**.
 
-* **Monitoramento em Tempo Real:** Atualização automática de métricas a cada segundo (sem *refresh* na página).
-* **Recursos de Hardware:**
-    * **CPU:** Uso percentual e temperatura do processador.
-    * **Memória RAM:** Uso total, livre e percentual.
-    * **Armazenamento:** Monitoramento de espaço em disco (Total/Usado/Livre).
-* **Status do Sistema:** Exibe o *Uptime* (tempo de atividade) e informações do Sistema Operacional.
-* **Visualização Gráfica:** Página dedicada com gráficos históricos (últimos 60 segundos) para CPU, RAM e Temperatura.
-* **Interface Responsiva:** Design *Dark Mode* construído com Bootstrap 5, adaptável para desktop e mobile.
+O objetivo principal deste projeto é demonstrar a implementação de uma arquitetura Full Stack moderna, utilizando **Java 25** e **Spring Boot 4** para criar um sistema de telemetria eficiente. Ele resolve a necessidade de visualizar a saúde do hardware (CPU, RAM, Disco e Temperatura) de forma instantânea, eliminando a complexidade de ferramentas corporativas pesadas para casos de uso em servidores pessoais ou *homelabs*.
 
-## 🛠️ Tecnologias
+## 🚀 Principais Funcionalidades
 
-* **Backend:** Java 25, Spring Boot 4, Spring WebSocket.
-* **Hardware Info:** OSHI (Operating System and Hardware Information).
-* **Frontend:** Thymeleaf, Bootstrap 5, Chart.js, SockJS & STOMP.
+A aplicação utiliza **WebSockets (STOMP)** para garantir que os dados sejam "empurrados" (*push*) para o cliente, garantindo atualização instantânea sem a necessidade de *polling* constante.
 
-## 🚀 Como Rodar no Seu Servidor
+
+* **Telemetria em Tempo Real:** Atualização de métricas via WebSocket a cada segundo.
+* **Monitoramento de Hardware (OSHI):**
+    * **CPU:** Carga do sistema e monitoramento térmico.
+    * **Memória:** Alocação dinâmica e uso real.
+    * **Armazenamento:** Análise de partições e espaço disponível.
+* **Health Check de Serviços:** Verificação de disponibilidade de portas TCP locais (ex: verificar se bancos de dados ou containers estão rodando).
+* **Visualização de Dados:** Dashboards interativos e gráficos históricos (janela de 60s) renderizados com Chart.js.
+* **Interface Responsiva:** UI moderna com *Dark Mode* nativo, construída sobre Bootstrap 5.
+
+## 🛠️ Tech Stack
+
+O projeto foi construído explorando as tecnologias mais recentes do ecossistema Java:
+
+**Backend**
+* **Java 25:** Utilizando os recursos mais modernos da linguagem.
+* **Spring Boot 4.0.2:** Framework core para injeção de dependência e servidor web.
+* **Spring WebSocket:** Para comunicação duplex em tempo real.
+* **OSHI (Operating System and Hardware Information):** Biblioteca para coleta de métricas de baixo nível.
+
+**Frontend**
+* **Thymeleaf:** Template engine para renderização server-side.
+* **Bootstrap 5:** Framework CSS para estilização responsiva.
+* **Chart.js:** Biblioteca para plotagem de gráficos de performance.
+* **SockJS & STOMP:** Clientes JavaScript para conexão com o WebSocket.
+
+## 📦 Instalação e Execução
 
 ### Pré-requisitos
 * Java JDK 25 instalado.
 * Git.
 
-### Instalação
+### Passo a Passo
 
 1.  **Clone o repositório:**
     ```bash
@@ -37,32 +56,26 @@ O **Server Dashboard** oferece monitoramento contínuo com atualizações instan
     cd server-dashboard
     ```
 
-2.  **Execute a aplicação:**
-    Utilize o *wrapper* do Maven incluído para garantir a versão correta das dependências:
-    ```bash
-    # Linux / macOS
-    ./mvnw spring-boot:run
+2.  **Compile e Execute:**
+    O projeto inclui o Maven Wrapper, garantindo que você rode com as dependências exatas sem precisar instalar o Maven manualmente.
 
-    # Windows
-    mvnw.cmd spring-boot:run
+    **Linux :**
+    ```bash
+    ./mvnw spring-boot:run
     ```
 
-3.  **Acesse o Painel:**
-    Abra seu navegador e vá para:
-    > **http://localhost:8080**
+3.  **Acesse o Dashboard:**
+    Navegue até `http://localhost:8080`.
 
-    * **Dashboard Geral:** `/`
-    * **Gráficos:** `/charts`
+## 🗺️ Roadmap de Desenvolvimento
 
-## 🗺️ Roadmap
+Como um projeto ativo de estudo, as seguintes melhorias estão planejadas:
 
-O projeto está em constante evolução. Abaixo estão as próximas funcionalidades planejadas:
-
-- [ ] **Tráfego de Rede:** Visualização de taxas de upload e download em tempo real das interfaces de rede.
-- [ ] **Lista de Processos:** Tabela interativa com os top processos consumindo CPU/Memória.
-- [ ] **Sistema de Alertas:** Notificações visuais ou externas (E-mail/Discord) para picos críticos de uso (ex: CPU > 90%).
+- [ ] **Autenticação:** Implementação para proteger o acesso ao painel.
 
 ---
+
 <p align="center">
-  Desenvolvido por <a href="https://github.com/dioguit0s">Diogo</a>
+  Desenvolvido por <a href="https://github.com/dioguit0s">Diogo Santos Rodrigues</a> 💻<br>
+  <i>Estudante de Engenharia da Computação</i>
 </p>
