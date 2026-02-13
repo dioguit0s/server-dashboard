@@ -3,9 +3,10 @@
 var socket = new SockJS('/ws');
 var stompClient = Stomp.over(socket);
 // Desabilita logs de debug no console para limpar a visualização
-stompClient.debug = null;
+//stompClient.debug = null;
 
 stompClient.connect({}, function (frame) {
+    console.log('Conectado: ' + frame);
     stompClient.subscribe('/topic/public', function (message) {
         var data = JSON.parse(message.body);
 
