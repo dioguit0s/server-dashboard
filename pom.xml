@@ -39,11 +39,6 @@
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
-			<dependency>
-				<groupId>me.paulschwarz</groupId>
-				<artifactId>spring-dotenv</artifactId>
-				<version>4.0.0</version>
-			</dependency>
 		</dependencies>
 	</dependencyManagement>
 	<dependencies>
