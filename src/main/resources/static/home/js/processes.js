@@ -41,12 +41,19 @@ function truncate(str, len) {
     return str.length > len ? str.substring(0, len) + '...' : str;
 }
 
+var _procMsgCount = 0;
 StompReconnect.connect({
     onConnect: function(stompClient) {
+        _procMsgCount = 0;
+        console.log('[ServerDash Processos] Inscrito em /topic/admin (WebSocket)');
         stompClient.subscribe('/topic/admin', function (message) {
             var data = JSON.parse(message.body);
             if (data.processesByCpu) window.lastProcessesByCpu = data.processesByCpu;
             if (data.processesByRam) window.lastProcessesByRam = data.processesByRam;
+            _procMsgCount++;
+            if (_procMsgCount === 1 || _procMsgCount % 30 === 0) {
+                console.log('[ServerDash Processos] métrica admin recebida #' + _procMsgCount);
+            }
             renderProcesses();
         });
     },

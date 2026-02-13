@@ -1,4 +1,6 @@
 /* src/main/resources/static/js/dashboard.js */
+var _dashMsgCount = 0;
+var _dashSource = '';
 
 function applyPublicMetrics(data) {
     if (!data) return;
@@ -46,20 +48,36 @@ function applyPublicMetrics(data) {
     var elNetup = document.getElementById('netUpText');
     if (elNetDown) elNetDown.innerText = data.netDown;
     if (elNetup) elNetup.innerText = data.netUp;
+
+    _dashMsgCount++;
+    if (_dashMsgCount === 1 || _dashMsgCount % 30 === 0) {
+        console.log('[ServerDash Dashboard]', _dashSource, '- métrica recebida #' + _dashMsgCount, 'CPU:', data.cpuPercent + '%');
+    }
 }
 
 function subscribePublicMetrics(stompClient) {
+    _dashSource = 'WebSocket';
+    _dashMsgCount = 0;
+    console.log('[ServerDash Dashboard] Inscrito em /topic/public (WebSocket)');
     stompClient.subscribe('/topic/public', function (message) {
         applyPublicMetrics(JSON.parse(message.body));
     });
 }
 
 function startMetricsPolling() {
+    _dashSource = 'Polling';
+    _dashMsgCount = 0;
+    console.log('[ServerDash Dashboard] Fallback: iniciando polling GET /api/metrics/public a cada 1s');
     setInterval(function() {
         fetch('/api/metrics/public')
-            .then(function(res) { return res.ok ? res.json() : null; })
+            .then(function(res) {
+                if (!res.ok) console.warn('[ServerDash Dashboard] Polling falhou:', res.status, res.statusText);
+                return res.ok ? res.json() : null;
+            })
             .then(applyPublicMetrics)
-            .catch(function() {});
+            .catch(function(err) {
+                console.warn('[ServerDash Dashboard] Polling erro:', err);
+            });
     }, 1000);
 }
 

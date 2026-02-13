@@ -3,9 +3,16 @@
  * Quando a conexão cai, reconecta com backoff exponencial e re-subcreve aos tópicos.
  */
 var StompReconnect = (function() {
+    var PREFIX = '[ServerDash WS]';
     var reconnectDelay = 1000;
     var maxReconnectDelay = 30000;
     var heartbeat = { incoming: 10000, outgoing: 10000 };
+
+    function log() {
+        var args = Array.prototype.slice.call(arguments);
+        args.unshift(PREFIX, new Date().toISOString());
+        console.log.apply(console, args);
+    }
 
     function getIndicator() {
         var el = document.getElementById('ws-reconnect-indicator');
@@ -35,26 +42,31 @@ var StompReconnect = (function() {
         var reconnectAttempts = 0;
         var fallbackActive = false;
 
-        function scheduleReconnect() {
+        function scheduleReconnect(reason) {
             if (reconnectScheduled || fallbackActive) return;
             reconnectScheduled = true;
             reconnectAttempts++;
+            log('Conexão perdida:', reason || 'desconhecido', '| Tentativa de reconexão:', reconnectAttempts, '/', maxReconnectAttempts);
             if (showIndicator) showReconnecting(true);
             if (reconnectAttempts >= maxReconnectAttempts && onFallbackToPolling) {
                 fallbackActive = true;
                 reconnectScheduled = false;
                 if (showIndicator) showReconnecting(false);
+                log('Limite de reconexões atingido. Ativando fallback de polling (API REST).');
                 onFallbackToPolling();
                 return;
             }
+            var delay = reconnectDelay;
+            reconnectDelay = Math.min(reconnectDelay * 2, maxReconnectDelay);
+            log('Reconectando em', delay, 'ms...');
             setTimeout(function() {
                 reconnectScheduled = false;
-                reconnectDelay = Math.min(reconnectDelay * 2, maxReconnectDelay);
                 doConnect();
-            }, reconnectDelay);
+            }, delay);
         }
 
         function doConnect() {
+            log('Iniciando conexão SockJS para /ws ...');
             var socket = new SockJS('/ws');
             var stompClient = Stomp.over(socket);
             stompClient.debug = null;
@@ -62,21 +74,26 @@ var StompReconnect = (function() {
             stompClient.connect({ heartbeat: hb }, function(frame) {
                 reconnectDelay = 1000;
                 reconnectAttempts = 0;
+                log('Conectado com sucesso. Frame:', frame ? frame.command : 'N/A');
                 if (showIndicator) showReconnecting(false);
                 onConnect(stompClient);
-            }, function() {
-                scheduleReconnect();
+            }, function(err) {
+                log('Erro na conexão STOMP:', err);
+                scheduleReconnect('erro STOMP');
             });
 
-            socket.onclose = function() {
-                scheduleReconnect();
+            socket.onclose = function(ev) {
+                log('Socket fechado. code:', ev ? ev.code : '?', 'reason:', ev ? ev.reason : '?', 'clean:', ev ? ev.wasClean : '?');
+                scheduleReconnect('socket onclose');
             };
 
-            socket.onerror = function() {
-                scheduleReconnect();
+            socket.onerror = function(err) {
+                log('Socket erro:', err);
+                scheduleReconnect('socket onerror');
             };
         }
 
+        log('StompReconnect iniciado. Host:', window.location.host, 'Protocol:', window.location.protocol);
         doConnect();
     }
 

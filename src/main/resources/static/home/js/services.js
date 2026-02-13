@@ -110,11 +110,20 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
+var _svcMsgCount = 0;
 StompReconnect.connect({
     onConnect: function(stompClient) {
+        _svcMsgCount = 0;
+        console.log('[ServerDash Serviços] Inscrito em /topic/admin (WebSocket)');
         stompClient.subscribe('/topic/admin', function (message) {
             var data = JSON.parse(message.body);
-            if (data.services) renderServices(data.services);
+            if (data.services) {
+                _svcMsgCount++;
+                if (_svcMsgCount === 1 || _svcMsgCount % 30 === 0) {
+                    console.log('[ServerDash Serviços] métrica admin recebida #' + _svcMsgCount);
+                }
+                renderServices(data.services);
+            }
         });
     },
     heartbeat: { incoming: 10000, outgoing: 10000 }

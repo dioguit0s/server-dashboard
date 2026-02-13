@@ -139,6 +139,9 @@ function addData(chart, label, data) {
     chart.update();
 }
 
+var _chartsMsgCount = 0;
+var _chartsSource = '';
+
 function applyChartsData(data) {
     if (!data) return;
     var now = new Date().toLocaleTimeString();
@@ -151,20 +154,34 @@ function applyChartsData(data) {
     if (ramVal) ramVal.innerText = data.ramPercent + '%';
     var tempVal = document.getElementById('tempValue');
     if (tempVal) tempVal.innerText = data.cpuTemp + '°C';
+
+    _chartsMsgCount++;
+    if (_chartsMsgCount === 1 || _chartsMsgCount % 30 === 0) {
+        console.log('[ServerDash Charts]', _chartsSource, '- métrica recebida #' + _chartsMsgCount);
+    }
 }
 
 function subscribeCharts(stompClient) {
+    _chartsSource = 'WebSocket';
+    _chartsMsgCount = 0;
+    console.log('[ServerDash Charts] Inscrito em /topic/public (WebSocket)');
     stompClient.subscribe('/topic/public', function (message) {
         applyChartsData(JSON.parse(message.body));
     });
 }
 
 function startChartsPolling() {
+    _chartsSource = 'Polling';
+    _chartsMsgCount = 0;
+    console.log('[ServerDash Charts] Fallback: iniciando polling GET /api/metrics/public a cada 1s');
     setInterval(function() {
         fetch('/api/metrics/public')
-            .then(function(res) { return res.ok ? res.json() : null; })
+            .then(function(res) {
+                if (!res.ok) console.warn('[ServerDash Charts] Polling falhou:', res.status);
+                return res.ok ? res.json() : null;
+            })
             .then(applyChartsData)
-            .catch(function() {});
+            .catch(function(err) { console.warn('[ServerDash Charts] Polling erro:', err); });
     }, 1000);
 }
 
