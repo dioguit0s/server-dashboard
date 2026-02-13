@@ -27,11 +27,14 @@ public class MonitorService {
     private long prevBytesRecv = 0;
     private long prevBytesSent = 0;
 
+    private long myPID;
+
     public MonitorService() {
         this.systemInfo = new SystemInfo();
         this.hardware = systemInfo.getHardware();
         this.os = systemInfo.getOperatingSystem();
         this.sensors = hardware.getSensors();
+        this.myPID = ProcessHandle.current().pid();
     }
 
     public double getCpuTemperature() { return sensors.getCpuTemperature(); }
@@ -156,6 +159,9 @@ public class MonitorService {
             if (p == null || p.getState() == OSProcess.State.INVALID) continue;
 
             String name = p.getName();
+            if(p.getProcessID() == this.myPID) {
+                name = "Dashboard";
+            }
             if (name == null || name.isBlank()) name = "(sem nome)";
             if (name.length() > 40) name = name.substring(0, 37) + "...";
 
