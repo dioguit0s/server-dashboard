@@ -139,21 +139,38 @@ function addData(chart, label, data) {
     chart.update();
 }
 
-var socket = new SockJS('/ws');
-var stompClient = Stomp.over(socket);
-stompClient.debug = null;
+function applyChartsData(data) {
+    if (!data) return;
+    var now = new Date().toLocaleTimeString();
+    addData(cpuChart, now, data.cpuInt);
+    addData(ramChart, now, data.ramInt);
+    addData(tempChart, now, data.cpuTempInt);
+    var cpuVal = document.getElementById('cpuValue');
+    if (cpuVal) cpuVal.innerText = data.cpuPercent + '%';
+    var ramVal = document.getElementById('ramValue');
+    if (ramVal) ramVal.innerText = data.ramPercent + '%';
+    var tempVal = document.getElementById('tempValue');
+    if (tempVal) tempVal.innerText = data.cpuTemp + '°C';
+}
 
-stompClient.connect({}, function (frame) {
+function subscribeCharts(stompClient) {
     stompClient.subscribe('/topic/public', function (message) {
-        var data = JSON.parse(message.body);
-        var now = new Date().toLocaleTimeString();
-
-        addData(cpuChart, now, data.cpuInt);
-        addData(ramChart, now, data.ramInt);
-        addData(tempChart, now, data.cpuTempInt);
-
-        if(document.getElementById('cpuValue')) document.getElementById('cpuValue').innerText = data.cpuPercent + '%';
-        if(document.getElementById('ramValue')) document.getElementById('ramValue').innerText = data.ramPercent + '%';
-        if(document.getElementById('tempValue')) document.getElementById('tempValue').innerText = data.cpuTemp + '°C';
+        applyChartsData(JSON.parse(message.body));
     });
+}
+
+function startChartsPolling() {
+    setInterval(function() {
+        fetch('/api/metrics/public')
+            .then(function(res) { return res.ok ? res.json() : null; })
+            .then(applyChartsData)
+            .catch(function() {});
+    }, 1000);
+}
+
+StompReconnect.connect({
+    onConnect: subscribeCharts,
+    onFallbackToPolling: startChartsPolling,
+    maxReconnectAttempts: 5,
+    heartbeat: { incoming: 10000, outgoing: 10000 }
 });

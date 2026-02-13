@@ -233,6 +233,14 @@ body {
 .net-cell-down .net-label { color: rgba(6, 182, 212, 0.95); }
 .net-cell-up .net-label { color: rgba(245, 158, 11, 0.95); }
 
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+.spin {
+    animation: spin 1s linear infinite;
+    display: inline-block;
+}
+
 /* Ajustes Mobile */
 @media (max-width: 768px) {
     .metric-value { font-size: 2rem; }

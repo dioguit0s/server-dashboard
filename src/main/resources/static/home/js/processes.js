@@ -1,7 +1,3 @@
-var socket = new SockJS('/ws');
-var stompClient = Stomp.over(socket);
-stompClient.debug = null;
-
 var currentSort = 'cpu';
 
 document.querySelectorAll('input[name="sortBy"]').forEach(function(radio) {
@@ -45,11 +41,14 @@ function truncate(str, len) {
     return str.length > len ? str.substring(0, len) + '...' : str;
 }
 
-stompClient.connect({}, function (frame) {
-    stompClient.subscribe('/topic/admin', function (message) {
-        var data = JSON.parse(message.body);
-        if (data.processesByCpu) window.lastProcessesByCpu = data.processesByCpu;
-        if (data.processesByRam) window.lastProcessesByRam = data.processesByRam;
-        renderProcesses();
-    });
+StompReconnect.connect({
+    onConnect: function(stompClient) {
+        stompClient.subscribe('/topic/admin', function (message) {
+            var data = JSON.parse(message.body);
+            if (data.processesByCpu) window.lastProcessesByCpu = data.processesByCpu;
+            if (data.processesByRam) window.lastProcessesByRam = data.processesByRam;
+            renderProcesses();
+        });
+    },
+    heartbeat: { incoming: 10000, outgoing: 10000 }
 });
