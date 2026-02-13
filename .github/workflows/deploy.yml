@@ -1,0 +1,12 @@
+name: Deploy to Server
+
+on:
+  push:
+    branches: [ "master" ]
+
+jobs:
+  deploy:
+    runs-on: self-hosted  # <--- MUDANÇA IMPORTANTE: Roda no seu PC
+    steps:
+      - name: Executar Script de Deploy
+        run: ~/deploy-bash.sh  # Roda direto, sem SSH
