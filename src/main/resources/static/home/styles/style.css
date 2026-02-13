@@ -195,6 +195,44 @@ body {
     transform: translateY(-1px);
 }
 
+/* Tráfego de rede: indicadores Download vs Upload */
+.net-cell {
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+}
+
+.net-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.5rem;
+    color: var(--text-muted);
+}
+
+.net-icon {
+    font-size: 1.1rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.net-icon-down {
+    color: var(--accent-net);
+    filter: drop-shadow(0 0 6px rgba(6, 182, 212, 0.4));
+}
+
+.net-icon-up {
+    color: var(--accent-temp);
+    filter: drop-shadow(0 0 6px rgba(245, 158, 11, 0.4));
+}
+
+.net-cell-down .net-label { color: rgba(6, 182, 212, 0.95); }
+.net-cell-up .net-label { color: rgba(245, 158, 11, 0.95); }
+
 /* Ajustes Mobile */
 @media (max-width: 768px) {
     .metric-value { font-size: 2rem; }
