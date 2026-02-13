@@ -1,4 +1,5 @@
 /* src/main/resources/static/js/dashboard.js */
+console.log('--- DASHBOARD.JS CARREGADO ---');
 var _dashMsgCount = 0;
 var _dashSource = '';
 
@@ -81,6 +82,11 @@ function startMetricsPolling() {
     }, 1000);
 }
 
+console.log('Chamando StompReconnect.connect()...');
+console.log('onConnect: ' + subscribePublicMetrics);
+console.log('onFallbackToPolling: ' + startMetricsPolling);
+console.log('maxReconnectAttempts: ' + 5);
+console.log('heartbeat: ' + { incoming: 10000, outgoing: 10000 });
 StompReconnect.connect({
     onConnect: subscribePublicMetrics,
     onFallbackToPolling: startMetricsPolling,
