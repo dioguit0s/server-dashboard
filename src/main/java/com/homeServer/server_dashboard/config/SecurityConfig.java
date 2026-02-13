@@ -15,10 +15,10 @@ import org.thymeleaf.extras.springsecurity6.dialect.SpringSecurityDialect;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    @Value("${ADMIN_USERNAME}")
+    @Value("${dashboard.admin.username}")
     private String adminUsername;
 
-    @Value("${ADMIN_PASSWORD:admin123}")
+    @Value("${dashboard.admin.password}")
     private String adminPassword;
 
     @Bean
