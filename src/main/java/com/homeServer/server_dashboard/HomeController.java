@@ -41,6 +41,11 @@ public class HomeController {
         return "home/home";
     }
 
+    @GetMapping("/login")
+    public String login() {
+        return "home/login";
+    }
+
     @GetMapping("/charts")
     public String charts(Model model) {
         model.addAttribute("osName", monitorService.getOsInfo());

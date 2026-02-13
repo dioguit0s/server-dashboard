@@ -46,7 +46,7 @@ function truncate(str, len) {
 }
 
 stompClient.connect({}, function (frame) {
-    stompClient.subscribe('/topic/metrics', function (message) {
+    stompClient.subscribe('/topic/admin', function (message) {
         var data = JSON.parse(message.body);
         if (data.processesByCpu) window.lastProcessesByCpu = data.processesByCpu;
         if (data.processesByRam) window.lastProcessesByRam = data.processesByRam;

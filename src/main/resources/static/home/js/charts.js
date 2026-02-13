@@ -144,7 +144,7 @@ var stompClient = Stomp.over(socket);
 stompClient.debug = null;
 
 stompClient.connect({}, function (frame) {
-    stompClient.subscribe('/topic/metrics', function (message) {
+    stompClient.subscribe('/topic/public', function (message) {
         var data = JSON.parse(message.body);
         var now = new Date().toLocaleTimeString();
 

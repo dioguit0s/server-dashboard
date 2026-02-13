@@ -115,7 +115,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 stompClient.connect({}, function (frame) {
-    stompClient.subscribe('/topic/metrics', function (message) {
+    stompClient.subscribe('/topic/admin', function (message) {
         var data = JSON.parse(message.body);
         if (data.services) renderServices(data.services);
     });

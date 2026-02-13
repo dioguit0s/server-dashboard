@@ -157,6 +157,44 @@ body {
     color: var(--text-main);
 }
 
+/* Formulário de Login (tema escuro) */
+.form-control-theme {
+    background-color: rgba(15, 23, 42, 0.6);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-main);
+}
+
+.form-control-theme::placeholder {
+    color: var(--text-muted);
+    opacity: 0.8;
+}
+
+.form-control-theme:focus {
+    background-color: var(--bg-card);
+    border-color: var(--accent-cpu);
+    color: var(--text-main);
+    box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25);
+}
+
+.form-label.card-title-label {
+    margin-bottom: 0.35rem;
+}
+
+.btn-theme {
+    background: linear-gradient(90deg, var(--accent-cpu), #60a5fa);
+    border: none;
+    border-radius: 8px;
+    color: #fff;
+    transition: opacity 0.2s, transform 0.2s;
+}
+
+.btn-theme:hover {
+    opacity: 0.95;
+    color: #fff;
+    transform: translateY(-1px);
+}
+
 /* Ajustes Mobile */
 @media (max-width: 768px) {
     .metric-value { font-size: 2rem; }
