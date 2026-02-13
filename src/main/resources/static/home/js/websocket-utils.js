@@ -69,7 +69,6 @@ var StompReconnect = (function() {
             log('Iniciando conexão SockJS para /ws ...');
             var socket = new SockJS('/ws');
             var stompClient = Stomp.over(socket);
-            stompClient.debug = null;
 
             stompClient.connect({ heartbeat: hb }, function(frame) {
                 reconnectDelay = 1000;
