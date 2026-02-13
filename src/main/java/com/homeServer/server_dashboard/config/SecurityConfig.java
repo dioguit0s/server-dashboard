@@ -1,5 +1,6 @@
 package com.homeServer.server_dashboard.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -13,6 +14,12 @@ import org.thymeleaf.extras.springsecurity6.dialect.SpringSecurityDialect;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+
+    @Value("${dashboard.admin.username}")
+    private String adminUsername;
+
+    @Value("${dashboard.admin.password}")
+    private String adminPassword;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -42,8 +49,8 @@ public class SecurityConfig {
     public UserDetailsService userDetailsService() {
         return new InMemoryUserDetailsManager(
             User.builder()
-                .username("admin")
-                .password("{noop}60WZf7Fv{2[£")
+                .username(adminUsername)
+                .password("{noop}" + adminPassword)
                 .roles("ADMIN")
                 .build()
         );
