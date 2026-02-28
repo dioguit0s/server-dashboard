@@ -4,14 +4,14 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Entity
 public class HistoricalMetric {
     @Id
     @GeneratedValue(strategy= GenerationType.IDENTITY)
     private Long identifier;
-    private LocalDateTime recordedAt;
+    private Instant recordedAt;
     private Double cpuUsagePercentage;
     private Double ramUsagePercentage;
     private Double cpuTemperature;
@@ -26,11 +26,11 @@ public class HistoricalMetric {
         this.identifier = identifier;
     }
 
-    public LocalDateTime getRecordedAt() {
+    public Instant getRecordedAt() {
         return recordedAt;
     }
 
-    public void setRecordedAt(LocalDateTime recordedAt) {
+    public void setRecordedAt(Instant recordedAt) {
         this.recordedAt = recordedAt;
     }
 

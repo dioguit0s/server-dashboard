@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 @Service
@@ -22,12 +22,12 @@ public class HistoricalMetricsService {
 
     @Scheduled(fixedRate = 60000) //executa a cada 1 minuto (60000 milisegundos)
     public void saveCurrentMetrics(){
-        LocalDateTime now = LocalDateTime.now();
+        Instant now = Instant.now(); // UTC
         Double cpuTemp = monitorService.getCpuTemperature();
         Double cpuUsage = monitorService.getCpuUsage();
         Double ramUsage = monitorService.getMemoryUsagePercentage();
 
-        log.debug("[Historico] Salvando metrica agendada: recordedAt={}, cpuTemp={}, cpuUsage={}%, ramUsage={}%", now, cpuTemp, cpuUsage, ramUsage);
+        log.debug("[Historico] Salvando metrica agendada: recordedAt={} (UTC), cpuTemp={}, cpuUsage={}%, ramUsage={}%", now, cpuTemp, cpuUsage, ramUsage);
 
         HistoricalMetric historicalMetric = new HistoricalMetric();
         historicalMetric.setRecordedAt(now);
@@ -40,8 +40,8 @@ public class HistoricalMetricsService {
     }
 
     public List<HistoricalMetric> getMetricsSince(int hoursToRetrieve){
-        LocalDateTime timeThreshold = LocalDateTime.now().minusHours(hoursToRetrieve);
-        log.info("[Historico] Buscando metricas: hoursToRetrieve={}, timeThreshold={}", hoursToRetrieve, timeThreshold);
+        Instant timeThreshold = Instant.now().minusSeconds(hoursToRetrieve * 3600L); // UTC: "X horas atras"
+        log.info("[Historico] Buscando metricas: hoursToRetrieve={}, timeThreshold={} (UTC)", hoursToRetrieve, timeThreshold);
 
         List<HistoricalMetric> list = historicalMetricRepository.findByRecordedAtAfterOrderByRecordedAtAsc(timeThreshold);
         log.info("[Historico] Retornando {} registros (primeiro: {}, ultimo: {})",
