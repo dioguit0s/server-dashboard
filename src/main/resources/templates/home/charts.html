@@ -37,10 +37,13 @@
 
 <div class="container pb-5">
     <div class="d-flex align-items-center justify-content-between mb-4">
-        <h4 class="text-white fw-bold m-0">Performance em Tempo Real</h4>
-        <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-3 py-2">
-            Janela de 60 segundos
-        </span>
+        <h4 class="text-white fw-bold m-0">Performance do Servidor</h4>
+        <div class="btn-group" role="group">
+            <button type="button" class="btn btn-outline-primary btn-sm active" id="buttonRealTime">Tempo Real</button>
+            <button type="button" class="btn btn-outline-primary btn-sm" id="buttonLastHour">Última Hora</button>
+            <button type="button" class="btn btn-outline-primary btn-sm" id="buttonLastDay">Últimas 24h</button>
+            <button type="button" class="btn btn-outline-primary btn-sm" id="buttonLastWeek">Últimas Semana</button>
+        </div>
     </div>
 
     <!-- Layout Grid -->
