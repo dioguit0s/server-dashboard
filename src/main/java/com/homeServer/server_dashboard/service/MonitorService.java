@@ -7,6 +7,8 @@ import oshi.hardware.GlobalMemory;
 import oshi.hardware.HardwareAbstractionLayer;
 import oshi.hardware.NetworkIF;
 import oshi.hardware.Sensors;
+import oshi.hardware.PhysicalMemory;
+import oshi.hardware.HWDiskStore;
 import oshi.software.os.OSFileStore;
 import oshi.software.os.OSProcess;
 import oshi.software.os.OperatingSystem;
@@ -19,61 +21,106 @@ import java.net.Socket;
 @Service
 public class MonitorService {
 
-    private final SystemInfo systemInfo;
-    private final HardwareAbstractionLayer hardware;
-    private final OperatingSystem os;
-    private final Sensors sensors;
+    private final SystemInfo systemInformation;
+    private final HardwareAbstractionLayer hardwareLayer;
+    private final OperatingSystem operatingSystem;
+    private final Sensors systemSensors;
 
-    private long prevBytesRecv = 0;
-    private long prevBytesSent = 0;
+    private long previousBytesReceived = 0;
+    private long previousBytesSent = 0;
 
-    private long myPID;
+    private long previousBytesReadFromDisk = 0;
+    private long previousBytesWrittenToDisk = 0;
+
+    private long currentProcessIdentifier;
 
     public MonitorService() {
-        this.systemInfo = new SystemInfo();
-        this.hardware = systemInfo.getHardware();
-        this.os = systemInfo.getOperatingSystem();
-        this.sensors = hardware.getSensors();
-        this.myPID = ProcessHandle.current().pid();
+        this.systemInformation = new SystemInfo();
+        this.hardwareLayer = systemInformation.getHardware();
+        this.operatingSystem = systemInformation.getOperatingSystem();
+        this.systemSensors = hardwareLayer.getSensors();
+        this.currentProcessIdentifier = ProcessHandle.current().pid();
     }
 
-    public double getCpuTemperature() { return sensors.getCpuTemperature(); }
-    public String getOsInfo() { return os.toString(); }
+    public double getCpuTemperature() { return systemSensors.getCpuTemperature(); }
+    public String getOsInfo() { return operatingSystem.toString(); }
 
     public double getMemoryUsagePercentage() {
-        GlobalMemory memory = hardware.getMemory();
-        return 100d * (memory.getTotal() - memory.getAvailable()) / memory.getTotal();
+        GlobalMemory globalMemory = hardwareLayer.getMemory();
+        return 100d * (globalMemory.getTotal() - globalMemory.getAvailable()) / globalMemory.getTotal();
     }
 
-    public String formatMemory(long bytes) { return formatBytes(bytes); }
-    public long getTotalMemory() { return hardware.getMemory().getTotal(); }
-    public long getFreeMemory() { return hardware.getMemory().getAvailable(); }
+    public String formatMemory(long bytesValue) { return formatBytes(bytesValue); }
+    public long getTotalMemory() { return hardwareLayer.getMemory().getTotal(); }
+    public long getFreeMemory() { return hardwareLayer.getMemory().getAvailable(); }
+
+    // ==========================================
+    // MÉTRICAS DE RAM
+    // ==========================================
+    public SwapInfo getSwapMetrics() {
+        long totalSwapMemory = hardwareLayer.getMemory().getVirtualMemory().getSwapTotal();
+        long usedSwapMemory = hardwareLayer.getMemory().getVirtualMemory().getSwapUsed();
+        long freeSwapMemory = totalSwapMemory - usedSwapMemory;
+        return new SwapInfo(formatBytes(totalSwapMemory), formatBytes(usedSwapMemory), formatBytes(freeSwapMemory));
+    }
+
+    public List<PhysicalMemoryInfo> getPhysicalMemoryDetails() {
+        List<PhysicalMemoryInfo> physicalMemoryInfoList = new ArrayList<>();
+        for (PhysicalMemory physicalMemory : hardwareLayer.getMemory().getPhysicalMemory()) {
+            physicalMemoryInfoList.add(new PhysicalMemoryInfo(
+                    physicalMemory.getBankLabel(),
+                    physicalMemory.getManufacturer(),
+                    physicalMemory.getMemoryType(),
+                    formatBytes(physicalMemory.getCapacity()),
+                    (physicalMemory.getClockSpeed() / 1_000_000) + " MHz"
+            ));
+        }
+        return physicalMemoryInfoList;
+    }
 
     public double getCpuUsage() {
-        CentralProcessor processor = hardware.getProcessor();
-        return processor.getSystemCpuLoad(1000) * 100;
+        CentralProcessor centralProcessor = hardwareLayer.getProcessor();
+        return centralProcessor.getSystemCpuLoad(1000) * 100;
     }
 
-    /**
-     * Retorna o nome/modelo do processador via OSHI.
-     */
+    // ==========================================
+    // MÉTRICAS DE CPU
+    // ==========================================
+    public int getPhysicalProcessorCount() {
+        return hardwareLayer.getProcessor().getPhysicalProcessorCount();
+    }
+
+    public int getLogicalProcessorCount() {
+        return hardwareLayer.getProcessor().getLogicalProcessorCount();
+    }
+
+    public String getProcessorVendor() {
+        return hardwareLayer.getProcessor().getProcessorIdentifier().getVendor();
+    }
+
+    public String getProcessorMicroarchitecture() {
+        return hardwareLayer.getProcessor().getProcessorIdentifier().getMicroarchitecture();
+    }
+
+    public double getSystemLoadAverage() {
+        // Retorna a média de carga do sistema em 1 minuto
+        double[] systemLoadAverages = hardwareLayer.getProcessor().getSystemLoadAverage(1);
+        return systemLoadAverages[0];
+    }
+
     public String getProcessorName() {
-        String name = hardware.getProcessor().getProcessorIdentifier().getName();
-        if (name == null || name.isBlank()) {
+        String processorName = hardwareLayer.getProcessor().getProcessorIdentifier().getName();
+        if (processorName == null || processorName.isBlank()) {
             return "Processador desconhecido";
         }
-        return name.trim();
+        return processorName.trim();
     }
 
-    /**
-     * Retorna a frequência máxima do processador formatada em MHz ou GHz.
-     * Usa getVendorFreq() quando disponível; caso contrário getMaxFreq().
-     */
     public String getProcessorMaximumFrequency() {
-        CentralProcessor processor = hardware.getProcessor();
-        long frequencyHertz = processor.getProcessorIdentifier().getVendorFreq();
+        CentralProcessor centralProcessor = hardwareLayer.getProcessor();
+        long frequencyHertz = centralProcessor.getProcessorIdentifier().getVendorFreq();
         if (frequencyHertz <= 0) {
-            frequencyHertz = processor.getMaxFreq();
+            frequencyHertz = centralProcessor.getMaxFreq();
         }
         if (frequencyHertz <= 0) {
             return "N/A";
@@ -85,144 +132,195 @@ public class MonitorService {
         return String.format("%.0f MHz", frequencyMegahertz);
     }
 
-    public DiskInfo getDiskMetrics() {
-        List<OSFileStore> fileStores = os.getFileSystem().getFileStores();
-        long totalSpace = 0;
-        long usableSpace = 0;
-        for (OSFileStore fs : fileStores) {
-            if (fs.getTotalSpace() > 1024 * 1024 * 1024) {
-                totalSpace += fs.getTotalSpace();
-                usableSpace += fs.getUsableSpace();
+    // ==========================================
+    // MÉTRICAS DE DISCO ATUALIZADAS
+    // ==========================================
+    public DiskMetrics getAdvancedDiskMetrics() {
+        // 1. Partições / Volumes Lógicos
+        List<OSFileStore> fileStoresList = operatingSystem.getFileSystem().getFileStores();
+        long totalSpaceAvailable = 0;
+        long usableSpaceAvailable = 0;
+
+        List<LogicalVolumeInfo> logicalVolumesList = new ArrayList<>();
+
+        for (OSFileStore fileSystemStore : fileStoresList) {
+            if (fileSystemStore.getTotalSpace() > 1024 * 1024 * 1024) { // Ignora partições muito pequenas
+                totalSpaceAvailable += fileSystemStore.getTotalSpace();
+                usableSpaceAvailable += fileSystemStore.getUsableSpace();
+
+                logicalVolumesList.add(new LogicalVolumeInfo(
+                        fileSystemStore.getName(),
+                        fileSystemStore.getMount(),
+                        fileSystemStore.getType(),
+                        formatBytes(fileSystemStore.getTotalSpace()),
+                        formatBytes(fileSystemStore.getUsableSpace())
+                ));
             }
         }
-        return new DiskInfo(formatBytes(totalSpace), formatBytes(totalSpace - usableSpace), formatBytes(usableSpace), 100d * (totalSpace - usableSpace) / totalSpace);
+
+        double usedPercentageValue = totalSpaceAvailable > 0 ? 100d * (totalSpaceAvailable - usableSpaceAvailable) / totalSpaceAvailable : 0;
+        DiskInfo overallDiskInfo = new DiskInfo(
+                formatBytes(totalSpaceAvailable),
+                formatBytes(totalSpaceAvailable - usableSpaceAvailable),
+                formatBytes(usableSpaceAvailable),
+                usedPercentageValue
+        );
+
+        // 2. Discos Físicos e Leitura/Escrita
+        List<HardwareDiskInfo> hardwareDiskInfoList = new ArrayList<>();
+        long currentBytesReadFromDisk = 0;
+        long currentBytesWrittenToDisk = 0;
+
+        for (HWDiskStore hardwareDiskStore : hardwareLayer.getDiskStores()) {
+            hardwareDiskStore.updateAttributes();
+            currentBytesReadFromDisk += hardwareDiskStore.getReadBytes();
+            currentBytesWrittenToDisk += hardwareDiskStore.getWriteBytes();
+
+            hardwareDiskInfoList.add(new HardwareDiskInfo(
+                    hardwareDiskStore.getModel(),
+                    hardwareDiskStore.getSerial(),
+                    formatBytes(hardwareDiskStore.getSize())
+            ));
+        }
+
+        // Calcula a taxa por segundo
+        if (previousBytesReadFromDisk == 0 || currentBytesReadFromDisk < previousBytesReadFromDisk) {
+            previousBytesReadFromDisk = currentBytesReadFromDisk;
+            previousBytesWrittenToDisk = currentBytesWrittenToDisk;
+        }
+
+        long diskReadSpeedPerSecond = currentBytesReadFromDisk - previousBytesReadFromDisk;
+        long diskWriteSpeedPerSecond = currentBytesWrittenToDisk - previousBytesWrittenToDisk;
+
+        previousBytesReadFromDisk = currentBytesReadFromDisk;
+        previousBytesWrittenToDisk = currentBytesWrittenToDisk;
+
+        DiskIoInfo diskIoRate = new DiskIoInfo(formatRate(diskReadSpeedPerSecond), formatRate(diskWriteSpeedPerSecond));
+
+        return new DiskMetrics(overallDiskInfo, logicalVolumesList, hardwareDiskInfoList, diskIoRate);
+    }
+
+    // Mantido para não quebrar controladores existentes que só buscam a métrica geral
+    public DiskInfo getDiskMetrics() {
+        return getAdvancedDiskMetrics().overallDiskInfo;
     }
 
     public NetworkInfo getNetworkMetrics() {
-        List<NetworkIF> networkIFs = hardware.getNetworkIFs();
+        List<NetworkIF> networkInterfacesList = hardwareLayer.getNetworkIFs();
 
-        long currentBytesRecv = 0;
+        long currentBytesReceived = 0;
         long currentBytesSent = 0;
 
-        for (NetworkIF net : networkIFs) {
-            // Atualiza os atributos da interface
-            net.updateAttributes();
+        for (NetworkIF networkInterface : networkInterfacesList) {
+            networkInterface.updateAttributes();
 
-            // FILTRO: Só processa se tiver IPv4 (conectada) e não for Loopback (localhost)
-            // Isso ignora adaptadores Bluetooth vazios, Docker inativo, etc.
-            if (net.getIPv4addr().length > 0 && !net.getDisplayName().toLowerCase().contains("loopback")) {
-                currentBytesRecv += net.getBytesRecv();
-                currentBytesSent += net.getBytesSent();
-
-                // Opcional: Descomente para ver no console qual placa está sendo lida
-                // System.out.println("Lendo interface: " + net.getDisplayName());
+            if (networkInterface.getIPv4addr().length > 0 && !networkInterface.getDisplayName().toLowerCase().contains("loopback")) {
+                currentBytesReceived += networkInterface.getBytesRecv();
+                currentBytesSent += networkInterface.getBytesSent();
             }
         }
 
-        // Se for a primeira execução ou os bytes zerarem (reinício de interface), reseta
-        if (prevBytesRecv == 0 || currentBytesRecv < prevBytesRecv) {
-            prevBytesRecv = currentBytesRecv;
-            prevBytesSent = currentBytesSent;
+        if (previousBytesReceived == 0 || currentBytesReceived < previousBytesReceived) {
+            previousBytesReceived = currentBytesReceived;
+            previousBytesSent = currentBytesSent;
             return new NetworkInfo("0 B/s", "0 B/s");
         }
 
-        long downloadSpeed = currentBytesRecv - prevBytesRecv;
-        long uploadSpeed = currentBytesSent - prevBytesSent;
+        long downloadSpeedPerSecond = currentBytesReceived - previousBytesReceived;
+        long uploadSpeedPerSecond = currentBytesSent - previousBytesSent;
 
-        // Atualiza o "passado" para a próxima execução
-        prevBytesRecv = currentBytesRecv;
-        prevBytesSent = currentBytesSent;
+        previousBytesReceived = currentBytesReceived;
+        previousBytesSent = currentBytesSent;
 
         return new NetworkInfo(
-                formatRate(downloadSpeed),
-                formatRate(uploadSpeed)
+                formatRate(downloadSpeedPerSecond),
+                formatRate(uploadSpeedPerSecond)
         );
     }
 
-    private String formatBytes(long bytes) {
-        double gigabytes = bytes / (1024.0 * 1024.0 * 1024.0);
-        return String.format("%.2f GB", gigabytes);
+    private String formatBytes(long bytesValue) {
+        double gigabytesValue = bytesValue / (1024.0 * 1024.0 * 1024.0);
+        return String.format("%.2f GB", gigabytesValue);
     }
 
-    private String formatRate(long bytesPerSecond) {
-        if (bytesPerSecond < 1024) return bytesPerSecond + " B/s";
-        double kb = bytesPerSecond / 1024.0;
-        if (kb < 1024) return String.format("%.1f KB/s", kb);
-        double mb = kb / 1024.0;
-        return String.format("%.1f MB/s", mb);
+    private String formatRate(long bytesPerSecondValue) {
+        if (bytesPerSecondValue < 1024) return bytesPerSecondValue + " B/s";
+        double kilobytesValue = bytesPerSecondValue / 1024.0;
+        if (kilobytesValue < 1024) return String.format("%.1f KB/s", kilobytesValue);
+        double megabytesValue = kilobytesValue / 1024.0;
+        return String.format("%.1f MB/s", megabytesValue);
     }
 
     public String getSystemUptime() {
-        long uptimeSeconds = os.getSystemUptime();
-        long days = uptimeSeconds / (24 * 3600);
-        long hours = (uptimeSeconds % (24 * 3600)) / 3600;
-        long minutes = (uptimeSeconds % 3600) / 60;
-        long seconds = uptimeSeconds % 60;
-        return String.format("%d dias, %02d:%02d:%02d", days, hours, minutes, seconds);
+        long uptimeInSeconds = operatingSystem.getSystemUptime();
+        long uptimeDays = uptimeInSeconds / (24 * 3600);
+        long uptimeHours = (uptimeInSeconds % (24 * 3600)) / 3600;
+        long uptimeMinutes = (uptimeInSeconds % 3600) / 60;
+        long uptimeSecondsRemainder = uptimeInSeconds % 60;
+        return String.format("%d dias, %02d:%02d:%02d", uptimeDays, uptimeHours, uptimeMinutes, uptimeSecondsRemainder);
     }
 
-    public boolean isServiceUp(int port){
-        try(Socket socket = new Socket()) {
-            socket.connect(new InetSocketAddress("localhost", port), 200);
+    public boolean isServiceUp(int targetPort){
+        try(Socket testSocket = new Socket()) {
+            testSocket.connect(new InetSocketAddress("localhost", targetPort), 200);
             return true;
-        } catch (Exception e) {
+        } catch (Exception connectionException) {
             return false;
         }
     }
 
-    /**
-     * Retorna os top N processos ordenados por CPU ou memória (RSS).
-     * @param sortBy "cpu" ou "ram"
-     * @param limit quantidade máxima (ex: 15)
-     */
-    public List<ProcessInfo> getTopProcesses(String sortBy, int limit) {
-        var comparator = "ram".equalsIgnoreCase(sortBy)
+    public List<ProcessInfo> getTopProcesses(String sortByValue, int resultLimit) {
+        var processSortingComparator = "ram".equalsIgnoreCase(sortByValue)
                 ? OperatingSystem.ProcessSorting.RSS_DESC
                 : OperatingSystem.ProcessSorting.CPU_DESC;
 
-        List<OSProcess> procs = os.getProcesses(null, comparator, limit);
-        List<ProcessInfo> result = new ArrayList<>();
+        List<OSProcess> activeProcessesList = operatingSystem.getProcesses(null, processSortingComparator, resultLimit);
+        List<ProcessInfo> topProcessesResultList = new ArrayList<>();
 
-        long totalMem = hardware.getMemory().getTotal();
-        int cpuCount = hardware.getProcessor().getLogicalProcessorCount();
+        long totalSystemMemory = hardwareLayer.getMemory().getTotal();
+        int logicalProcessorCount = hardwareLayer.getProcessor().getLogicalProcessorCount();
 
-        for (OSProcess p : procs) {
-            if (p == null || p.getState() == OSProcess.State.INVALID) continue;
+        for (OSProcess currentProcess : activeProcessesList) {
+            if (currentProcess == null || currentProcess.getState() == OSProcess.State.INVALID) continue;
 
-            String name = p.getName();
-            if(p.getProcessID() == this.myPID) {
-                name = "Dashboard";
+            String currentProcessName = currentProcess.getName();
+            if(currentProcess.getProcessID() == this.currentProcessIdentifier) {
+                currentProcessName = "Dashboard";
             }
-            if (name == null || name.isBlank()) name = "(sem nome)";
-            if (name.length() > 40) name = name.substring(0, 37) + "...";
+            if (currentProcessName == null || currentProcessName.isBlank()) currentProcessName = "(sem nome)";
+            if (currentProcessName.length() > 40) currentProcessName = currentProcessName.substring(0, 37) + "...";
 
-            double cpuPercent = p.getProcessCpuLoadCumulative() * 100;
-            if (cpuCount > 0) cpuPercent = Math.min(100, cpuPercent / cpuCount);
+            double cpuUsagePercentage = currentProcess.getProcessCpuLoadCumulative() * 100;
+            if (logicalProcessorCount > 0) cpuUsagePercentage = Math.min(100, cpuUsagePercentage / logicalProcessorCount);
 
-            long rss = p.getResidentSetSize();
-            double ramPercent = totalMem > 0 ? 100d * rss / totalMem : 0;
+            long residentSetSizeMemory = currentProcess.getResidentSetSize();
+            double ramUsagePercentage = totalSystemMemory > 0 ? 100d * residentSetSizeMemory / totalSystemMemory : 0;
 
-            result.add(new ProcessInfo(
-                    name,
-                    p.getProcessID(),
-                    String.format("%.1f", cpuPercent),
-                    String.format("%.1f", ramPercent),
-                    formatBytes(rss)
+            topProcessesResultList.add(new ProcessInfo(
+                    currentProcessName,
+                    currentProcess.getProcessID(),
+                    String.format("%.1f", cpuUsagePercentage),
+                    String.format("%.1f", ramUsagePercentage),
+                    formatBytes(residentSetSizeMemory)
             ));
         }
-        return result;
+        return topProcessesResultList;
     }
+
+    // ==========================================
+    // CLASSES DE ESTRUTURA DE DADOS
+    // ==========================================
 
     public static class ProcessInfo {
         public final String name;
-        public final int pid;
+        public final int processIdentifier;
         public final String cpuPercent;
         public final String ramPercent;
         public final String ramFormatted;
 
-        public ProcessInfo(String name, int pid, String cpuPercent, String ramPercent, String ramFormatted) {
+        public ProcessInfo(String name, int processIdentifier, String cpuPercent, String ramPercent, String ramFormatted) {
             this.name = name;
-            this.pid = pid;
+            this.processIdentifier = processIdentifier;
             this.cpuPercent = cpuPercent;
             this.ramPercent = ramPercent;
             this.ramFormatted = ramFormatted;
@@ -230,14 +328,83 @@ public class MonitorService {
     }
 
     public static class DiskInfo {
-        public String total, used, free;
-        public double percent;
-        public DiskInfo(String t, String u, String f, double p) { total = t; used = u; free = f; percent = p; }
+        public String totalSpace, usedSpace, freeSpace;
+        public double percentageUsed;
+        public DiskInfo(String totalSpace, String usedSpace, String freeSpace, double percentageUsed) {
+            this.totalSpace = totalSpace;
+            this.usedSpace = usedSpace;
+            this.freeSpace = freeSpace;
+            this.percentageUsed = percentageUsed;
+        }
     }
 
     public static class NetworkInfo {
         public String downloadRate;
         public String uploadRate;
-        public NetworkInfo(String down, String up) { this.downloadRate = down; this.uploadRate = up; }
+        public NetworkInfo(String downloadRate, String uploadRate) {
+            this.downloadRate = downloadRate;
+            this.uploadRate = uploadRate;
+        }
+    }
+
+    public static class SwapInfo {
+        public final String totalSwap;
+        public final String usedSwap;
+        public final String freeSwap;
+        public SwapInfo(String totalSwap, String usedSwap, String freeSwap) {
+            this.totalSwap = totalSwap; this.usedSwap = usedSwap; this.freeSwap = freeSwap;
+        }
+    }
+
+    public static class PhysicalMemoryInfo {
+        public final String bankLabel;
+        public final String manufacturer;
+        public final String memoryType;
+        public final String capacity;
+        public final String clockSpeed;
+        public PhysicalMemoryInfo(String bankLabel, String manufacturer, String memoryType, String capacity, String clockSpeed) {
+            this.bankLabel = bankLabel; this.manufacturer = manufacturer; this.memoryType = memoryType;
+            this.capacity = capacity; this.clockSpeed = clockSpeed;
+        }
+    }
+
+    public static class LogicalVolumeInfo {
+        public final String volumeName;
+        public final String mountPoint;
+        public final String fileSystemType;
+        public final String totalSpace;
+        public final String usableSpace;
+        public LogicalVolumeInfo(String volumeName, String mountPoint, String fileSystemType, String totalSpace, String usableSpace) {
+            this.volumeName = volumeName; this.mountPoint = mountPoint; this.fileSystemType = fileSystemType;
+            this.totalSpace = totalSpace; this.usableSpace = usableSpace;
+        }
+    }
+
+    public static class HardwareDiskInfo {
+        public final String diskModel;
+        public final String serialNumber;
+        public final String diskSize;
+        public HardwareDiskInfo(String diskModel, String serialNumber, String diskSize) {
+            this.diskModel = diskModel; this.serialNumber = serialNumber; this.diskSize = diskSize;
+        }
+    }
+
+    public static class DiskIoInfo {
+        public final String readRate;
+        public final String writeRate;
+        public DiskIoInfo(String readRate, String writeRate) {
+            this.readRate = readRate; this.writeRate = writeRate;
+        }
+    }
+
+    public static class DiskMetrics {
+        public final DiskInfo overallDiskInfo;
+        public final List<LogicalVolumeInfo> logicalVolumes;
+        public final List<HardwareDiskInfo> hardwareDisks;
+        public final DiskIoInfo diskIoRate;
+        public DiskMetrics(DiskInfo overallDiskInfo, List<LogicalVolumeInfo> logicalVolumes, List<HardwareDiskInfo> hardwareDisks, DiskIoInfo diskIoRate) {
+            this.overallDiskInfo = overallDiskInfo; this.logicalVolumes = logicalVolumes;
+            this.hardwareDisks = hardwareDisks; this.diskIoRate = diskIoRate;
+        }
     }
 }
