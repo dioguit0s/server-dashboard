@@ -53,6 +53,14 @@ public class HomeController {
         return "home/charts";
     }
 
+    @GetMapping("/cpu-details")
+    public String cpuDetails(Model model) {
+        model.addAttribute("processorName", monitorService.getProcessorName());
+        model.addAttribute("processorMaximumFrequency", monitorService.getProcessorMaximumFrequency());
+        model.addAttribute("osName", monitorService.getOsInfo());
+        return "home/cpu-details";
+    }
+
     @GetMapping("/services")
     public String services(Model model) {
         model.addAttribute("osName", monitorService.getOsInfo());

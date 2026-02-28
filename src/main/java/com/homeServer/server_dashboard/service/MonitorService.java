@@ -54,6 +54,37 @@ public class MonitorService {
         return processor.getSystemCpuLoad(1000) * 100;
     }
 
+    /**
+     * Retorna o nome/modelo do processador via OSHI.
+     */
+    public String getProcessorName() {
+        String name = hardware.getProcessor().getProcessorIdentifier().getName();
+        if (name == null || name.isBlank()) {
+            return "Processador desconhecido";
+        }
+        return name.trim();
+    }
+
+    /**
+     * Retorna a frequência máxima do processador formatada em MHz ou GHz.
+     * Usa getVendorFreq() quando disponível; caso contrário getMaxFreq().
+     */
+    public String getProcessorMaximumFrequency() {
+        CentralProcessor processor = hardware.getProcessor();
+        long frequencyHertz = processor.getProcessorIdentifier().getVendorFreq();
+        if (frequencyHertz <= 0) {
+            frequencyHertz = processor.getMaxFreq();
+        }
+        if (frequencyHertz <= 0) {
+            return "N/A";
+        }
+        double frequencyMegahertz = frequencyHertz / 1_000_000.0;
+        if (frequencyMegahertz >= 1000) {
+            return String.format("%.2f GHz", frequencyMegahertz / 1000.0);
+        }
+        return String.format("%.0f MHz", frequencyMegahertz);
+    }
+
     public DiskInfo getDiskMetrics() {
         List<OSFileStore> fileStores = os.getFileSystem().getFileStores();
         long totalSpace = 0;
