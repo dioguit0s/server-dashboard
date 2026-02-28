@@ -36,19 +36,48 @@
     <h4 class="text-white fw-bold mb-4">Detalhes do Processador</h4>
 
     <div class="row g-4 mb-4">
-        <div class="col-12 col-md-6">
+        <div class="col-12 col-lg-8">
             <div class="card card-metric h-100">
                 <div class="card-body p-4">
-                    <div class="card-title-label mb-2">Nome do Processador</div>
-                    <div class="text-white fw-bold" th:text="${processorName}">--</div>
+                    <div class="card-title-label mb-2">Modelo e Fabricante</div>
+                    <div class="text-white fw-bold fs-5" th:text="${processorName}">--</div>
+                    <div class="text-muted small mt-1">
+                        <span th:text="${processorVendor}">--</span> |
+                        Microarquitetura: <span th:text="${processorMicroarchitecture}">--</span>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="col-12 col-md-6">
+        <div class="col-12 col-md-6 col-lg-4">
             <div class="card card-metric h-100">
                 <div class="card-body p-4">
-                    <div class="card-title-label mb-2">Velocidade / Frequência</div>
-                    <div class="text-white fw-bold" th:text="${processorMaximumFrequency}">--</div>
+                    <div class="card-title-label mb-2">Velocidade Máxima</div>
+                    <div class="text-white fw-bold fs-4" th:text="${processorMaximumFrequency}">--</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-4">
+            <div class="card card-metric h-100 border-start border-4 border-primary">
+                <div class="card-body p-4">
+                    <div class="card-title-label mb-2">Núcleos Físicos (Cores)</div>
+                    <div class="text-white fw-bold fs-4" th:text="${physicalCores}">--</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="card card-metric h-100 border-start border-4 border-info">
+                <div class="card-body p-4">
+                    <div class="card-title-label mb-2">Núcleos Lógicos (Threads)</div>
+                    <div class="text-white fw-bold fs-4" th:text="${logicalCores}">--</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="card card-metric h-100 border-start border-4 border-warning">
+                <div class="card-body p-4">
+                    <div class="card-title-label mb-2">Média de Carga (1 min)</div>
+                    <div class="text-white fw-bold fs-4" th:text="${systemLoadAverage}">--</div>
                 </div>
             </div>
         </div>
