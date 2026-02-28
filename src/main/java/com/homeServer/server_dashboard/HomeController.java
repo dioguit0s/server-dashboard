@@ -61,6 +61,32 @@ public class HomeController {
         return "home/cpu-details";
     }
 
+    @GetMapping("/disk-details")
+    public String diskDetails(Model model) {
+        MonitorService.DiskInfo diskInfo = monitorService.getDiskMetrics();
+        model.addAttribute("diskTotal", diskInfo.total);
+        model.addAttribute("diskUsed", diskInfo.used);
+        model.addAttribute("diskFree", diskInfo.free);
+        model.addAttribute("diskPercent", String.format("%.1f", diskInfo.percent));
+        model.addAttribute("diskInt", (int) diskInfo.percent);
+        model.addAttribute("osName", monitorService.getOsInfo());
+        return "home/disk-details";
+    }
+
+    @GetMapping("/ram-details")
+    public String ramDetails(Model model) {
+        double ramDouble = monitorService.getMemoryUsagePercentage();
+        long total = monitorService.getTotalMemory();
+        long free = monitorService.getFreeMemory();
+        model.addAttribute("ramPercent", String.format("%.1f", ramDouble));
+        model.addAttribute("ramInt", (int) ramDouble);
+        model.addAttribute("ramTotal", monitorService.formatMemory(total));
+        model.addAttribute("ramUsado", monitorService.formatMemory(total - free));
+        model.addAttribute("ramLivre", monitorService.formatMemory(free));
+        model.addAttribute("osName", monitorService.getOsInfo());
+        return "home/ram-details";
+    }
+
     @GetMapping("/services")
     public String services(Model model) {
         model.addAttribute("osName", monitorService.getOsInfo());

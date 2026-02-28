@@ -42,9 +42,15 @@ public class ScheduledMetricsService {
         publicMetrics.put("cpuInt", (int) cpu);
         publicMetrics.put("ramPercent", String.format("%.1f", ram));
         publicMetrics.put("ramInt", (int) ram);
-        publicMetrics.put("ramLivre", monitorService.formatMemory(monitorService.getFreeMemory()));
+        long totalMem = monitorService.getTotalMemory();
+        long freeMem = monitorService.getFreeMemory();
+        publicMetrics.put("ramTotal", monitorService.formatMemory(totalMem));
+        publicMetrics.put("ramUsado", monitorService.formatMemory(totalMem - freeMem));
+        publicMetrics.put("ramLivre", monitorService.formatMemory(freeMem));
         publicMetrics.put("diskPercent", String.format("%.1f", disk.percent));
         publicMetrics.put("diskInt", (int) disk.percent);
+        publicMetrics.put("diskTotal", disk.total);
+        publicMetrics.put("diskUsed", disk.used);
         publicMetrics.put("diskFree", disk.free);
         publicMetrics.put("cpuTemp", String.format("%.1f", temp));
         publicMetrics.put("cpuTempInt", (int) temp);
