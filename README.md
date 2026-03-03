@@ -34,6 +34,7 @@ O projeto foi construído explorando as tecnologias mais recentes do ecossistema
 * **Java 25:** Utilizando os recursos mais modernos da linguagem.
 * **Spring Boot 4.0.2:** Framework core para injeção de dependência e servidor web.
 * **Spring WebSocket:** Para comunicação duplex em tempo real.
+* **Spring Security:** Para segregação de informações publicas e apenas para administradores.
 * **OSHI (Operating System and Hardware Information):** Biblioteca para coleta de métricas de baixo nível.
 
 **Frontend**
@@ -71,7 +72,9 @@ O projeto foi construído explorando as tecnologias mais recentes do ecossistema
 
 Como um projeto ativo de estudo, as seguintes melhorias estão planejadas:
 
-- [ ] **Autenticação:** Implementação para proteger o acesso ao painel.
+- [ ] **Controle de processos:** Possibilidade de encerrar processos diretamente pelo painel de processos.
+- [ ] **Painel de controle de Containers:** Feature para verificar uso de CPU/RAM de cada container e controles para Start,Stop e Restart naquele container especificos.
+- [ ] **Teste de Ping/Latencia:** Realizar um teste de ping no ip digitado pelo usuario no dashboard
 
 ---
 
