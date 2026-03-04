@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="pt-br">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -18,11 +18,17 @@
             <span>Server<span class="text-white-50 fw-light">Dash</span></span>
         </a>
 
-        <div class="navbar-nav ms-auto d-flex flex-row gap-4">
+        <div class="navbar-nav ms-auto d-flex flex-row gap-4 align-items-center">
             <a class="nav-link active" href="/">Visão Geral</a>
             <a class="nav-link" href="/charts">Histórico</a>
-            <a class="nav-link" href="/services">Serviços</a>
-            <a class="nav-link" href="/processes">Processos</a>
+            <span sec:authorize="isAuthenticated()"><a class="nav-link" href="/services">Serviços</a></span>
+            <span sec:authorize="isAuthenticated()"><a class="nav-link" href="/processes">Processos</a></span>
+            <span sec:authorize="!isAuthenticated()"><a class="nav-link" th:href="@{/login}">Login</a></span>
+            <span sec:authorize="isAuthenticated()">
+                <form th:action="@{/logout}" method="post" class="d-inline">
+                    <button type="submit" class="btn btn-link nav-link p-0 border-0 bg-transparent text-white-50">Logout</button>
+                </form>
+            </span>
         </div>
     </div>
 </nav>
@@ -70,35 +76,38 @@
 
         <!-- CPU -->
         <div class="col-12 col-md-6 col-xl-3">
-            <div class="card card-metric h-100">
-                <div class="card-body p-4">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <span class="card-title-label">Processador</span>
-                        <div class="icon-box text-primary bg-primary bg-opacity-10">
-                            <i class="bi bi-cpu"></i>
+            <a th:href="@{/cpu-details}" class="text-decoration-none text-reset d-block h-100">
+                <div class="card card-metric h-100" style="cursor: pointer;">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <span class="card-title-label">Processador</span>
+                            <div class="icon-box text-primary bg-primary bg-opacity-10">
+                                <i class="bi bi-cpu"></i>
+                            </div>
+                        </div>
+
+                        <div class="mt-3">
+                            <span id="cpuPercentText" class="metric-value" th:text="${cpuPercent}">0</span>
+                            <span class="unit-label">%</span>
+                        </div>
+
+                        <div class="progress-container">
+                            <div id="cpuBar" class="custom-bar bg-cpu" th:style="'width: ' + ${cpuInt} + '%'"></div>
+                        </div>
+
+                        <div class="metric-footer">
+                            <span>Cores: Disponíveis</span>
+                            <span class="text-white">Ativo</span>
                         </div>
                     </div>
-
-                    <div class="mt-3">
-                        <span id="cpuPercentText" class="metric-value" th:text="${cpuPercent}">0</span>
-                        <span class="unit-label">%</span>
-                    </div>
-
-                    <div class="progress-container">
-                        <div id="cpuBar" class="custom-bar bg-cpu" th:style="'width: ' + ${cpuInt} + '%'"></div>
-                    </div>
-
-                    <div class="metric-footer">
-                        <span>Cores: Disponíveis</span>
-                        <span class="text-white">Ativo</span>
-                    </div>
                 </div>
-            </div>
+            </a>
         </div>
 
         <!-- RAM -->
         <div class="col-12 col-md-6 col-xl-3">
-            <div class="card card-metric h-100">
+            <a th:href="@{/ram-details}" class="text-decoration-none text-reset d-block h-100">
+            <div class="card card-metric h-100" style="cursor: pointer;">
                 <div class="card-body p-4">
                     <div class="d-flex justify-content-between align-items-start">
                         <span class="card-title-label">Memória</span>
@@ -122,34 +131,37 @@
                     </div>
                 </div>
             </div>
+            </a>
         </div>
 
         <!-- DISK -->
         <div class="col-12 col-md-6 col-xl-3">
-            <div class="card card-metric h-100">
-                <div class="card-body p-4">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <span class="card-title-label">Armazenamento</span>
-                        <div class="icon-box text-success bg-success bg-opacity-10">
-                            <i class="bi bi-device-hdd"></i>
+            <a th:href="@{/disk-details}" class="text-decoration-none text-reset d-block h-100">
+                <div class="card card-metric h-100" style="cursor: pointer;">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <span class="card-title-label">Armazenamento</span>
+                            <div class="icon-box text-success bg-success bg-opacity-10">
+                                <i class="bi bi-device-hdd"></i>
+                            </div>
+                        </div>
+
+                        <div class="mt-3">
+                            <span id="diskPercentText" class="metric-value" th:text="${diskPercent}">0</span>
+                            <span class="unit-label">%</span>
+                        </div>
+
+                        <div class="progress-container">
+                            <div id="diskBar" class="custom-bar bg-disk" th:style="'width: ' + ${diskInt} + '%'"></div>
+                        </div>
+
+                        <div class="metric-footer">
+                            <span>Livre: <span id="diskFreeText" class="text-white" th:text="${diskFree}">--</span></span>
+                            <span>Total: <span th:text="${diskTotal}">--</span></span>
                         </div>
                     </div>
-
-                    <div class="mt-3">
-                        <span id="diskPercentText" class="metric-value" th:text="${diskPercent}">0</span>
-                        <span class="unit-label">%</span>
-                    </div>
-
-                    <div class="progress-container">
-                        <div id="diskBar" class="custom-bar bg-disk" th:style="'width: ' + ${diskInt} + '%'"></div>
-                    </div>
-
-                    <div class="metric-footer">
-                        <span>Livre: <span id="diskFreeText" class="text-white" th:text="${diskFree}">--</span></span>
-                        <span>Total: <span th:text="${diskTotal}">--</span></span>
-                    </div>
                 </div>
-            </div>
+            </a>
         </div>
 
         <!-- TEMP -->
@@ -191,13 +203,19 @@
                         </div>
                     </div>
 
-                    <div class="row text-center">
-                        <div class="col-6 border-end border-secondary border-opacity-25">
-                            <div class="text-muted small mb-1"><i class="bi bi-download me-1"></i> Download</div>
+                    <div class="row text-center g-0">
+                        <div class="col-6 border-end border-secondary border-opacity-25 pe-3 net-cell net-cell-down">
+                            <div class="net-label">
+                                <i class="bi bi-download net-icon net-icon-down"></i>
+                                <span>Download</span>
+                            </div>
                             <div id="netDownText" class="fs-3 fw-bold text-white">0 KB/s</div>
                         </div>
-                        <div class="col-6">
-                            <div class="text-muted small mb-1"><i class="bi bi-upload me-1"></i> Upload</div>
+                        <div class="col-6 ps-3 net-cell net-cell-up">
+                            <div class="net-label">
+                                <i class="bi bi-upload net-icon net-icon-up"></i>
+                                <span>Upload</span>
+                            </div>
                             <div id="netUpText" class="fs-3 fw-bold text-white">0 KB/s</div>
                         </div>
                     </div>
@@ -214,7 +232,7 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
-<script th:src="@{/home/js/dashboard.js}"></script>
-
+<script th:src="@{/home/js/websocket-utils.js}"></script>
+<script th:src="@{/home/js/dashboard.js?v=2}"></script>
 </body>
 </html>

@@ -25,14 +25,48 @@ public class ScheduledMetricsService {
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
 
+    /**
+     * Retorna as métricas públicas (CPU, RAM, disco, temp, uptime, rede)
+     * para uso em API REST e fallback de polling quando WebSocket falha.
+     */
+    public Map<String, Object> getPublicMetrics() {
+        double cpuUsage = monitorService.getCpuUsage();
+        double ramUsage = monitorService.getMemoryUsagePercentage();
+        MonitorService.DiskInfo diskInformation = monitorService.getAdvancedDiskMetrics().overallDiskInfo;
+        double cpuTemperature = monitorService.getCpuTemperature();
+        String systemUptime = monitorService.getSystemUptime();
+        MonitorService.NetworkInfo networkInformation = monitorService.getNetworkMetrics();
+
+        Map<String, Object> publicMetrics = new HashMap<>();
+        publicMetrics.put("cpuPercent", String.format("%.1f", cpuUsage));
+        publicMetrics.put("cpuInt", (int) cpuUsage);
+        publicMetrics.put("ramPercent", String.format("%.1f", ramUsage));
+        publicMetrics.put("ramInt", (int) ramUsage);
+        long totalMemory = monitorService.getTotalMemory();
+        long freeMemory = monitorService.getFreeMemory();
+        publicMetrics.put("ramTotal", monitorService.formatMemory(totalMemory));
+        publicMetrics.put("ramUsado", monitorService.formatMemory(totalMemory - freeMemory));
+        publicMetrics.put("ramLivre", monitorService.formatMemory(freeMemory));
+
+        // ATENÇÃO AQUI: Nomes atualizados sem abreviações
+        publicMetrics.put("diskPercent", String.format("%.1f", diskInformation.percentageUsed));
+        publicMetrics.put("diskInt", (int) diskInformation.percentageUsed);
+        publicMetrics.put("diskTotal", diskInformation.totalSpace);
+        publicMetrics.put("diskUsed", diskInformation.usedSpace);
+        publicMetrics.put("diskFree", diskInformation.freeSpace);
+
+        publicMetrics.put("cpuTemp", String.format("%.1f", cpuTemperature));
+        publicMetrics.put("cpuTempInt", (int) cpuTemperature);
+        publicMetrics.put("uptime", systemUptime);
+        publicMetrics.put("netDown", networkInformation.downloadRate);
+        publicMetrics.put("netUp", networkInformation.uploadRate);
+
+        return publicMetrics;
+    }
+
     @Scheduled(fixedRate = 1000)
     public void sendMetrics() {
-        double cpu = monitorService.getCpuUsage();
-        double ram = monitorService.getMemoryUsagePercentage();
-        MonitorService.DiskInfo disk = monitorService.getDiskMetrics();
-        double temp = monitorService.getCpuTemperature();
-        String uptime = monitorService.getSystemUptime();
-        MonitorService.NetworkInfo net = monitorService.getNetworkMetrics();
+        Map<String, Object> publicMetrics = getPublicMetrics();
 
         List<Map<String, Object>> servicesStatus = new ArrayList<>();
         for (MonitoredService svc : monitoredServicesService.getAll()) {
@@ -47,37 +81,25 @@ public class ScheduledMetricsService {
         List<Map<String, Object>> processesByCpu = toProcessMaps(monitorService.getTopProcesses("cpu", TOP_PROCESSES_LIMIT));
         List<Map<String, Object>> processesByRam = toProcessMaps(monitorService.getTopProcesses("ram", TOP_PROCESSES_LIMIT));
 
-        Map<String, Object> metrics = new HashMap<>();
-        metrics.put("cpuPercent", String.format("%.1f", cpu));
-        metrics.put("cpuInt", (int) cpu);
-        metrics.put("ramPercent", String.format("%.1f", ram));
-        metrics.put("ramInt", (int) ram);
-        metrics.put("ramLivre", monitorService.formatMemory(monitorService.getFreeMemory()));
-        metrics.put("diskPercent", String.format("%.1f", disk.percent));
-        metrics.put("diskInt", (int) disk.percent);
-        metrics.put("diskFree", disk.free);
-        metrics.put("cpuTemp", String.format("%.1f", temp));
-        metrics.put("cpuTempInt", (int) temp);
-        metrics.put("uptime", uptime);
-        metrics.put("netDown", net.downloadRate);
-        metrics.put("netUp", net.uploadRate);
-        metrics.put("services", servicesStatus);
-        metrics.put("processesByCpu", processesByCpu);
-        metrics.put("processesByRam", processesByRam);
+        Map<String, Object> adminMetrics = new HashMap<>();
+        adminMetrics.put("services", servicesStatus);
+        adminMetrics.put("processesByCpu", processesByCpu);
+        adminMetrics.put("processesByRam", processesByRam);
 
-        messagingTemplate.convertAndSend("/topic/metrics", (Object) metrics);
+        messagingTemplate.convertAndSend("/topic/public", (Object) publicMetrics);
+        messagingTemplate.convertAndSend("/topic/admin", (Object) adminMetrics);
     }
 
     private List<Map<String, Object>> toProcessMaps(List<MonitorService.ProcessInfo> list) {
         List<Map<String, Object>> result = new ArrayList<>();
-        for (var p : list) {
-            Map<String, Object> pm = new HashMap<>();
-            pm.put("name", p.name);
-            pm.put("pid", p.pid);
-            pm.put("cpuPercent", p.cpuPercent);
-            pm.put("ramPercent", p.ramPercent);
-            pm.put("ramFormatted", p.ramFormatted);
-            result.add(pm);
+        for (var processInfo : list) {
+            Map<String, Object> processMap = new HashMap<>();
+            processMap.put("name", processInfo.name);
+            processMap.put("pid", processInfo.processIdentifier); // Atualizado de p.pid
+            processMap.put("cpuPercent", processInfo.cpuPercent);
+            processMap.put("ramPercent", processInfo.ramPercent);
+            processMap.put("ramFormatted", processInfo.ramFormatted);
+            result.add(processMap);
         }
         return result;
     }

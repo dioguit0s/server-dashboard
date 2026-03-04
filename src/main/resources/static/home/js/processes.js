@@ -1,7 +1,3 @@
-var socket = new SockJS('/ws');
-var stompClient = Stomp.over(socket);
-stompClient.debug = null;
-
 var currentSort = 'cpu';
 
 document.querySelectorAll('input[name="sortBy"]').forEach(function(radio) {
@@ -45,11 +41,21 @@ function truncate(str, len) {
     return str.length > len ? str.substring(0, len) + '...' : str;
 }
 
-stompClient.connect({}, function (frame) {
-    stompClient.subscribe('/topic/metrics', function (message) {
-        var data = JSON.parse(message.body);
-        if (data.processesByCpu) window.lastProcessesByCpu = data.processesByCpu;
-        if (data.processesByRam) window.lastProcessesByRam = data.processesByRam;
-        renderProcesses();
-    });
+var _procMsgCount = 0;
+StompReconnect.connect({
+    onConnect: function(stompClient) {
+        _procMsgCount = 0;
+        console.log('[ServerDash Processos] Inscrito em /topic/admin (WebSocket)');
+        stompClient.subscribe('/topic/admin', function (message) {
+            var data = JSON.parse(message.body);
+            if (data.processesByCpu) window.lastProcessesByCpu = data.processesByCpu;
+            if (data.processesByRam) window.lastProcessesByRam = data.processesByRam;
+            _procMsgCount++;
+            if (_procMsgCount === 1 || _procMsgCount % 30 === 0) {
+                console.log('[ServerDash Processos] métrica admin recebida #' + _procMsgCount);
+            }
+            renderProcesses();
+        });
+    },
+    heartbeat: { incoming: 10000, outgoing: 10000 }
 });

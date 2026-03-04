@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="pt-br">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -21,11 +21,17 @@
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
-            <div class="navbar-nav ms-auto d-flex flex-row gap-4">
+            <div class="navbar-nav ms-auto d-flex flex-row gap-4 align-items-center">
                 <a class="nav-link" href="/">Visão Geral</a>
                 <a class="nav-link" href="/charts">Histórico</a>
-                <a class="nav-link" href="/services">Serviços</a>
-                <a class="nav-link active" href="/processes">Processos</a>
+                <span sec:authorize="isAuthenticated()"><a class="nav-link" href="/services">Serviços</a></span>
+                <span sec:authorize="isAuthenticated()"><a class="nav-link active" href="/processes">Processos</a></span>
+                <span sec:authorize="!isAuthenticated()"><a class="nav-link" th:href="@{/login}">Login</a></span>
+                <span sec:authorize="isAuthenticated()">
+                    <form th:action="@{/logout}" method="post" class="d-inline">
+                        <button type="submit" class="btn btn-link nav-link p-0 border-0 bg-transparent text-white-50">Logout</button>
+                    </form>
+                </span>
             </div>
         </div>
     </div>
@@ -84,6 +90,7 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+<script th:src="@{/home/js/websocket-utils.js}"></script>
 <script th:src="@{home/js/processes.js}"></script>
 
 </body>

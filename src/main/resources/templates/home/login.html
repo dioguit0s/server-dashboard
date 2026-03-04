@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Login — Server Dashboard</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" th:href="@{/home/styles/style.css}">
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark navbar-blur fixed-top">
+    <div class="container">
+        <a class="navbar-brand d-flex align-items-center gap-2" href="/">
+            <i class="bi bi-hdd-rack-fill text-primary"></i>
+            <span>Server<span class="text-white-50 fw-light">Dash</span></span>
+        </a>
+
+        <div class="navbar-nav ms-auto d-flex flex-row gap-4 align-items-center">
+            <a class="nav-link" href="/">Visão Geral</a>
+            <a class="nav-link" href="/charts">Histórico</a>
+            <a class="nav-link active" th:href="@{/login}">Login</a>
+        </div>
+    </div>
+</nav>
+
+<div style="height: 100px;"></div>
+
+<div class="container pb-5">
+    <div class="row justify-content-center">
+        <div class="col-12 col-sm-10 col-md-6 col-lg-5">
+            <div class="card card-metric">
+                <div class="card-body p-4 p-md-5">
+                    <div class="d-flex align-items-center gap-3 mb-4">
+                        <div class="icon-box text-primary bg-primary bg-opacity-10" style="width: 48px; height: 48px;">
+                            <i class="bi bi-shield-lock fs-4"></i>
+                        </div>
+                        <div>
+                            <span class="card-title-label">Acesso restrito</span>
+                            <h4 class="m-0 text-white fw-bold">Acesso Admin</h4>
+                        </div>
+                    </div>
+
+                    <div th:if="${param.error}" class="alert alert-danger bg-danger bg-opacity-10 border border-danger border-opacity-25 text-danger mb-4" role="alert">
+                        <i class="bi bi-exclamation-circle me-2"></i>Usuário ou senha inválidos. Tente novamente.
+                    </div>
+
+                    <form th:action="@{/login}" method="post" class="login-form">
+                        <div class="mb-3">
+                            <label for="username" class="form-label card-title-label">Usuário</label>
+                            <input type="text" id="username" name="username" class="form-control form-control-theme" placeholder="Usuário" required autofocus autocomplete="username">
+                        </div>
+                        <div class="mb-4">
+                            <label for="password" class="form-label card-title-label">Senha</label>
+                            <input type="password" id="password" name="password" class="form-control form-control-theme" placeholder="Senha" required autocomplete="current-password">
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-theme w-100 py-2 fw-semibold">
+                            <i class="bi bi-box-arrow-in-right me-2"></i>Entrar
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer class="text-center text-muted small py-4 opacity-50">
+    <p>&copy; 2026 Server Dashboard</p>
+</footer>
+
+</body>
+</html>

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="pt-br">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -18,11 +18,17 @@
             <span>Server<span class="text-white-50 fw-light">Dash</span></span>
         </a>
 
-        <div class="navbar-nav ms-auto d-flex flex-row gap-4">
+        <div class="navbar-nav ms-auto d-flex flex-row gap-4 align-items-center">
             <a class="nav-link" href="/">Visão Geral</a>
             <a class="nav-link active" href="/charts">Histórico</a>
-            <a class="nav-link" href="/services">Serviços</a>
-            <a class="nav-link" href="/processes">Processos</a>
+            <span sec:authorize="isAuthenticated()"><a class="nav-link" href="/services">Serviços</a></span>
+            <span sec:authorize="isAuthenticated()"><a class="nav-link" href="/processes">Processos</a></span>
+            <span sec:authorize="!isAuthenticated()"><a class="nav-link" th:href="@{/login}">Login</a></span>
+            <span sec:authorize="isAuthenticated()">
+                <form th:action="@{/logout}" method="post" class="d-inline">
+                    <button type="submit" class="btn btn-link nav-link p-0 border-0 bg-transparent text-white-50">Logout</button>
+                </form>
+            </span>
         </div>
     </div>
 </nav>
@@ -31,10 +37,13 @@
 
 <div class="container pb-5">
     <div class="d-flex align-items-center justify-content-between mb-4">
-        <h4 class="text-white fw-bold m-0">Performance em Tempo Real</h4>
-        <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-3 py-2">
-            Janela de 60 segundos
-        </span>
+        <h4 class="text-white fw-bold m-0">Performance do Servidor</h4>
+        <div class="btn-group" role="group">
+            <button type="button" class="btn btn-outline-primary btn-sm active" id="buttonRealTime">Tempo Real</button>
+            <button type="button" class="btn btn-outline-primary btn-sm" id="buttonLastHour">Última Hora</button>
+            <button type="button" class="btn btn-outline-primary btn-sm" id="buttonLastDay">Últimas 24h</button>
+            <button type="button" class="btn btn-outline-primary btn-sm" id="buttonLastWeek">Últimas Semana</button>
+        </div>
     </div>
 
     <!-- Layout Grid -->
@@ -98,7 +107,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
+<script th:src="@{/home/js/websocket-utils.js}"></script>
 <script th:src="@{home/js/charts.js}"></script>
 
 </body>

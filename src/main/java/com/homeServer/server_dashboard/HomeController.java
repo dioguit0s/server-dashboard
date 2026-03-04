@@ -12,40 +12,93 @@ public class HomeController {
     @Autowired
     private MonitorService monitorService;
 
-    // Rota para a Página Principal (Dashboard)
     @GetMapping("/")
     public String index(Model model) {
-        // Coleta de dados iniciais
-        double cpuDouble = monitorService.getCpuUsage();
-        double ramDouble = monitorService.getMemoryUsagePercentage();
-        MonitorService.DiskInfo diskInfo = monitorService.getDiskMetrics();
-        double tempDouble = monitorService.getCpuTemperature();
+        double cpuUsage = monitorService.getCpuUsage();
+        double ramUsage = monitorService.getMemoryUsagePercentage();
+        MonitorService.DiskInfo diskInformation = monitorService.getAdvancedDiskMetrics().overallDiskInfo;
+        double cpuTemperature = monitorService.getCpuTemperature();
 
-        // Passando dados para o Template
         model.addAttribute("osName", monitorService.getOsInfo());
-        model.addAttribute("cpuPercent", String.format("%.1f", cpuDouble));
-        model.addAttribute("cpuInt", (int) cpuDouble);
-        model.addAttribute("ramPercent", String.format("%.1f", ramDouble));
-        model.addAttribute("ramInt", (int) ramDouble);
+        model.addAttribute("cpuPercent", String.format("%.1f", cpuUsage));
+        model.addAttribute("cpuInt", (int) cpuUsage);
+        model.addAttribute("ramPercent", String.format("%.1f", ramUsage));
+        model.addAttribute("ramInt", (int) ramUsage);
         model.addAttribute("ramTotal", monitorService.formatMemory(monitorService.getTotalMemory()));
         model.addAttribute("ramLivre", monitorService.formatMemory(monitorService.getFreeMemory()));
-        model.addAttribute("diskTotal", diskInfo.total);
-        model.addAttribute("diskUsed", diskInfo.used);
-        model.addAttribute("diskFree", diskInfo.free);
-        model.addAttribute("diskPercent", String.format("%.1f", diskInfo.percent));
-        model.addAttribute("diskInt", (int) diskInfo.percent);
-        model.addAttribute("cpuTemp", String.format("%.1f", tempDouble));
-        model.addAttribute("cpuTempInt", (int) tempDouble);
+
+        model.addAttribute("diskTotal", diskInformation.totalSpace);
+        model.addAttribute("diskUsed", diskInformation.usedSpace);
+        model.addAttribute("diskFree", diskInformation.freeSpace);
+        model.addAttribute("diskPercent", String.format("%.1f", diskInformation.percentageUsed));
+        model.addAttribute("diskInt", (int) diskInformation.percentageUsed);
+
+        model.addAttribute("cpuTemp", String.format("%.1f", cpuTemperature));
+        model.addAttribute("cpuTempInt", (int) cpuTemperature);
         model.addAttribute("uptime", monitorService.getSystemUptime());
 
         return "home/home";
     }
 
+    @GetMapping("/login")
+    public String login() {
+        return "home/login";
+    }
+
     @GetMapping("/charts")
     public String charts(Model model) {
         model.addAttribute("osName", monitorService.getOsInfo());
-
         return "home/charts";
+    }
+
+    @GetMapping("/cpu-details")
+    public String cpuDetails(Model model) {
+        model.addAttribute("osName", monitorService.getOsInfo());
+        model.addAttribute("processorName", monitorService.getProcessorName());
+        model.addAttribute("processorMaximumFrequency", monitorService.getProcessorMaximumFrequency());
+        model.addAttribute("physicalCores", monitorService.getPhysicalProcessorCount());
+        model.addAttribute("logicalCores", monitorService.getLogicalProcessorCount());
+        model.addAttribute("processorVendor", monitorService.getProcessorVendor());
+        model.addAttribute("processorMicroarchitecture", monitorService.getProcessorMicroarchitecture());
+        model.addAttribute("systemLoadAverage", String.format("%.2f", monitorService.getSystemLoadAverage()));
+        return "home/cpu-details";
+    }
+
+    @GetMapping("/disk-details")
+    public String diskDetails(Model model) {
+        MonitorService.DiskMetrics advancedDiskMetrics = monitorService.getAdvancedDiskMetrics();
+        MonitorService.DiskInfo diskInformation = advancedDiskMetrics.overallDiskInfo;
+
+        model.addAttribute("osName", monitorService.getOsInfo());
+        model.addAttribute("diskTotal", diskInformation.totalSpace);
+        model.addAttribute("diskUsed", diskInformation.usedSpace);
+        model.addAttribute("diskFree", diskInformation.freeSpace);
+        model.addAttribute("diskPercent", String.format("%.1f", diskInformation.percentageUsed));
+        model.addAttribute("diskInt", (int) diskInformation.percentageUsed);
+
+        // Novas listas para o front
+        model.addAttribute("hardwareDisksList", advancedDiskMetrics.hardwareDisks);
+        model.addAttribute("logicalVolumesList", advancedDiskMetrics.logicalVolumes);
+        return "home/disk-details";
+    }
+
+    @GetMapping("/ram-details")
+    public String ramDetails(Model model) {
+        double ramUsagePercentage = monitorService.getMemoryUsagePercentage();
+        long totalMemory = monitorService.getTotalMemory();
+        long freeMemory = monitorService.getFreeMemory();
+
+        model.addAttribute("osName", monitorService.getOsInfo());
+        model.addAttribute("ramPercent", String.format("%.1f", ramUsagePercentage));
+        model.addAttribute("ramInt", (int) ramUsagePercentage);
+        model.addAttribute("ramTotal", monitorService.formatMemory(totalMemory));
+        model.addAttribute("ramUsado", monitorService.formatMemory(totalMemory - freeMemory));
+        model.addAttribute("ramLivre", monitorService.formatMemory(freeMemory));
+
+        // Novos dados de Swap e Física
+        model.addAttribute("swapInformation", monitorService.getSwapMetrics());
+        model.addAttribute("physicalMemoryList", monitorService.getPhysicalMemoryDetails());
+        return "home/ram-details";
     }
 
     @GetMapping("/services")

@@ -124,36 +124,191 @@ const tempChart = new Chart(ctxTemp, {
     options: commonOptions
 });
 
-function addData(chart, label, data) {
-    chart.data.labels.push(label);
-    chart.data.datasets.forEach((dataset) => {
-        dataset.data.push(data);
+function addData(chartInstance, timeLabel, numericalData) {
+    chartInstance.data.labels.push(timeLabel);
+    chartInstance.data.datasets.forEach(function(datasetItem) {
+        datasetItem.data.push(numericalData);
     });
 
-    if (chart.data.labels.length > 60) {
-        chart.data.labels.shift();
-        chart.data.datasets.forEach((dataset) => {
-            dataset.data.shift();
+    if (isRealTimeModeActive && chartInstance.data.labels.length > 60) {
+        chartInstance.data.labels.shift();
+        chartInstance.data.datasets.forEach(function(datasetItem) {
+            datasetItem.data.shift();
         });
     }
-    chart.update();
+    chartInstance.update();
 }
 
-var socket = new SockJS('/ws');
-var stompClient = Stomp.over(socket);
-stompClient.debug = null;
+var _chartsMsgCount = 0;
+var _chartsSource = '';
 
-stompClient.connect({}, function (frame) {
-    stompClient.subscribe('/topic/metrics', function (message) {
-        var data = JSON.parse(message.body);
-        var now = new Date().toLocaleTimeString();
+function applyChartsData(data) {
+    if (!data) return;
+    var now = new Date().toLocaleTimeString();
+    addData(cpuChart, now, data.cpuInt);
+    addData(ramChart, now, data.ramInt);
+    addData(tempChart, now, data.cpuTempInt);
+    var cpuVal = document.getElementById('cpuValue');
+    if (cpuVal) cpuVal.innerText = data.cpuPercent + '%';
+    var ramVal = document.getElementById('ramValue');
+    if (ramVal) ramVal.innerText = data.ramPercent + '%';
+    var tempVal = document.getElementById('tempValue');
+    if (tempVal) tempVal.innerText = data.cpuTemp + '°C';
 
-        addData(cpuChart, now, data.cpuInt);
-        addData(ramChart, now, data.ramInt);
-        addData(tempChart, now, data.cpuTempInt);
+    _chartsMsgCount++;
+    if (_chartsMsgCount === 1 || _chartsMsgCount % 30 === 0) {
+        console.log('[ServerDash Charts]', _chartsSource, '- métrica recebida #' + _chartsMsgCount);
+    }
+}
 
-        if(document.getElementById('cpuValue')) document.getElementById('cpuValue').innerText = data.cpuPercent + '%';
-        if(document.getElementById('ramValue')) document.getElementById('ramValue').innerText = data.ramPercent + '%';
-        if(document.getElementById('tempValue')) document.getElementById('tempValue').innerText = data.cpuTemp + '°C';
+function subscribeCharts(stompClient) {
+    _chartsSource = 'WebSocket';
+    _chartsMsgCount = 0;
+    console.log('[ServerDash Charts] Inscrito em /topic/public (WebSocket)');
+    stompClient.subscribe('/topic/public', function (message) {
+        applyChartsData(JSON.parse(message.body));
     });
+}
+
+function startChartsPolling() {
+    _chartsSource = 'Polling';
+    _chartsMsgCount = 0;
+    console.log('[ServerDash Charts] Fallback: iniciando polling GET /api/metrics/public a cada 1s');
+    setInterval(function() {
+        fetch('/api/metrics/public')
+            .then(function(res) {
+                if (!res.ok) console.warn('[ServerDash Charts] Polling falhou:', res.status);
+                return res.ok ? res.json() : null;
+            })
+            .then(applyChartsData)
+            .catch(function(err) { console.warn('[ServerDash Charts] Polling erro:', err); });
+    }, 1000);
+}
+
+StompReconnect.connect({
+    onConnect: subscribeCharts,
+    onFallbackToPolling: startChartsPolling,
+    maxReconnectAttempts: 5,
+    heartbeat: { incoming: 10000, outgoing: 10000 }
 });
+
+let isRealTimeModeActive = true;
+let webSocketSubscription = null;
+
+function clearChartData(chartInstance) {
+    chartInstance.data.labels = [];
+    chartInstance.data.datasets.forEach(function(datasetItem) {
+        datasetItem.data = [];
+    });
+    chartInstance.update();
+}
+
+function loadHistoricalData(hoursToRetrieve) {
+    isRealTimeModeActive = false;
+
+    // Desconecta o tempo real para não interferir no histórico
+    if (webSocketSubscription !== null) {
+        webSocketSubscription.unsubscribe();
+        webSocketSubscription = null;
+    }
+
+    clearChartData(cpuChart);
+    clearChartData(ramChart);
+    clearChartData(tempChart);
+
+    var url = '/api/metrics/history?hoursToRetrieve=' + hoursToRetrieve;
+    console.log('[ServerDash Charts] loadHistoricalData: requisitando', url);
+
+    fetch(url)
+        .then(function(responseObject) {
+            console.log('[ServerDash Charts] loadHistoricalData: status=', responseObject.status, responseObject.statusText);
+            if (!responseObject.ok) {
+                return responseObject.text().then(function(text) {
+                    throw new Error('HTTP ' + responseObject.status + ': ' + text);
+                });
+            }
+            return responseObject.json();
+        })
+        .then(function(metricsArray) {
+            console.log('[ServerDash Charts] loadHistoricalData: recebidos', Array.isArray(metricsArray) ? metricsArray.length : 'nao-e-array', 'registros');
+            if (!Array.isArray(metricsArray)) {
+                console.error('[ServerDash Charts] loadHistoricalData: resposta nao e array:', typeof metricsArray, metricsArray);
+                return;
+            }
+            if (metricsArray.length > 0) {
+                console.log('[ServerDash Charts] loadHistoricalData: primeiro registro (amostra)', JSON.stringify(metricsArray[0]));
+            }
+            metricsArray.forEach(function(metricRecord) {
+                // Converte a data do formato ISO para local
+                let recordedTime = new Date(metricRecord.recordedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+                // Adiciona os dados contornando o limite de 60 segundos
+                cpuChart.data.labels.push(recordedTime);
+                cpuChart.data.datasets[0].data.push(metricRecord.cpuUsagePercentage);
+
+                ramChart.data.labels.push(recordedTime);
+                ramChart.data.datasets[0].data.push(metricRecord.ramUsagePercentage);
+
+                tempChart.data.labels.push(recordedTime);
+                tempChart.data.datasets[0].data.push(metricRecord.cpuTemperature);
+            });
+
+            cpuChart.update();
+            ramChart.update();
+            tempChart.update();
+            console.log('[ServerDash Charts] loadHistoricalData: graficos atualizados com', metricsArray.length, 'pontos');
+        })
+        .catch(function(errorObject) {
+            console.error('[ServerDash Charts] loadHistoricalData: erro ao buscar historico', errorObject);
+        });
+}
+
+// Configuração dos Botões
+document.getElementById('buttonRealTime').addEventListener('click', function() {
+    this.classList.add('active');
+    document.getElementById('buttonLastHour').classList.remove('active');
+    document.getElementById('buttonLastDay').classList.remove('active');
+
+    isRealTimeModeActive = true;
+    clearChartData(cpuChart);
+    clearChartData(ramChart);
+    clearChartData(tempChart);
+
+    // Reconecta ao WebSocket (Você pode chamar sua função existente StompReconnect.connect)
+    location.reload(); // Forma mais simples de resetar o WebSocket e as variáveis locais
+});
+
+document.getElementById('buttonLastHour').addEventListener('click', function() {
+    this.classList.add('active');
+    document.getElementById('buttonRealTime').classList.remove('active');
+    document.getElementById('buttonLastDay').classList.remove('active');
+    loadHistoricalData(1);
+});
+
+document.getElementById('buttonLastDay').addEventListener('click', function() {
+    this.classList.add('active');
+    document.getElementById('buttonRealTime').classList.remove('active');
+    document.getElementById('buttonLastHour').classList.remove('active');
+    loadHistoricalData(24);
+});
+
+document.getElementById('buttonLastWeek').addEventListener('click', function() {
+    this.classList.add('active');
+    document.getElementById('buttonRealTime').classList.remove('active');
+    document.getElementById('buttonLastHour').classList.remove('active');
+    loadHistoricalData(168);
+});
+
+// Atualize sua função subscribeCharts existente para salvar a inscrição
+function subscribeCharts(stompClient) {
+    _chartsSource = 'WebSocket';
+    _chartsMsgCount = 0;
+    console.log('[ServerDash Charts] Inscrito em /topic/public (WebSocket)');
+
+    // Salva a inscrição na variável
+    webSocketSubscription = stompClient.subscribe('/topic/public', function (messagePayload) {
+        if (isRealTimeModeActive) {
+            applyChartsData(JSON.parse(messagePayload.body));
+        }
+    });
+}

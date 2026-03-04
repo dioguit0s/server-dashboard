@@ -1,7 +1,3 @@
-var socket = new SockJS('/ws');
-var stompClient = Stomp.over(socket);
-stompClient.debug = null;
-
 function renderServices(services) {
     var container = document.getElementById('servicesGrid');
     container.innerHTML = '';
@@ -114,9 +110,21 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-stompClient.connect({}, function (frame) {
-    stompClient.subscribe('/topic/metrics', function (message) {
-        var data = JSON.parse(message.body);
-        if (data.services) renderServices(data.services);
-    });
+var _svcMsgCount = 0;
+StompReconnect.connect({
+    onConnect: function(stompClient) {
+        _svcMsgCount = 0;
+        console.log('[ServerDash Serviços] Inscrito em /topic/admin (WebSocket)');
+        stompClient.subscribe('/topic/admin', function (message) {
+            var data = JSON.parse(message.body);
+            if (data.services) {
+                _svcMsgCount++;
+                if (_svcMsgCount === 1 || _svcMsgCount % 30 === 0) {
+                    console.log('[ServerDash Serviços] métrica admin recebida #' + _svcMsgCount);
+                }
+                renderServices(data.services);
+            }
+        });
+    },
+    heartbeat: { incoming: 10000, outgoing: 10000 }
 });

@@ -157,6 +157,90 @@ body {
     color: var(--text-main);
 }
 
+/* Formulário de Login (tema escuro) */
+.form-control-theme {
+    background-color: rgba(15, 23, 42, 0.6);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-main);
+}
+
+.form-control-theme::placeholder {
+    color: var(--text-muted);
+    opacity: 0.8;
+}
+
+.form-control-theme:focus {
+    background-color: var(--bg-card);
+    border-color: var(--accent-cpu);
+    color: var(--text-main);
+    box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25);
+}
+
+.form-label.card-title-label {
+    margin-bottom: 0.35rem;
+}
+
+.btn-theme {
+    background: linear-gradient(90deg, var(--accent-cpu), #60a5fa);
+    border: none;
+    border-radius: 8px;
+    color: #fff;
+    transition: opacity 0.2s, transform 0.2s;
+}
+
+.btn-theme:hover {
+    opacity: 0.95;
+    color: #fff;
+    transform: translateY(-1px);
+}
+
+/* Tráfego de rede: indicadores Download vs Upload */
+.net-cell {
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+}
+
+.net-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.5rem;
+    color: var(--text-muted);
+}
+
+.net-icon {
+    font-size: 1.1rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.net-icon-down {
+    color: var(--accent-net);
+    filter: drop-shadow(0 0 6px rgba(6, 182, 212, 0.4));
+}
+
+.net-icon-up {
+    color: var(--accent-temp);
+    filter: drop-shadow(0 0 6px rgba(245, 158, 11, 0.4));
+}
+
+.net-cell-down .net-label { color: rgba(6, 182, 212, 0.95); }
+.net-cell-up .net-label { color: rgba(245, 158, 11, 0.95); }
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+.spin {
+    animation: spin 1s linear infinite;
+    display: inline-block;
+}
+
 /* Ajustes Mobile */
 @media (max-width: 768px) {
     .metric-value { font-size: 2rem; }

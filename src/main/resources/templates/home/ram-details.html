@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Detalhes da Memória RAM</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" th:href="@{home/styles/style.css}">
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark navbar-blur fixed-top">
+    <div class="container">
+        <a class="navbar-brand d-flex align-items-center gap-2" href="/">
+            <i class="bi bi-hdd-rack-fill text-primary"></i>
+            <span>Server<span class="text-white-50 fw-light">Dash</span></span>
+        </a>
+
+        <div class="navbar-nav ms-auto d-flex flex-row gap-4 align-items-center">
+            <a class="nav-link active" href="/"><i class="bi bi-arrow-left me-1"></i>Voltar para a home</a>
+            <span sec:authorize="!isAuthenticated()"><a class="nav-link" th:href="@{/login}">Login</a></span>
+            <span sec:authorize="isAuthenticated()">
+                <form th:action="@{/logout}" method="post" class="d-inline">
+                    <button type="submit" class="btn btn-link nav-link p-0 border-0 bg-transparent text-white-50">Logout</button>
+                </form>
+            </span>
+        </div>
+    </div>
+</nav>
+
+<div style="height: 100px;"></div>
+
+<div class="container pb-5">
+    <h4 class="text-white fw-bold mb-4">Detalhes da Memória RAM</h4>
+
+    <div class="row g-4 mb-4">
+        <div class="col-12 col-md-4">
+            <div class="card card-metric h-100">
+                <div class="card-body p-4">
+                    <div class="card-title-label mb-2">Uso da RAM</div>
+                    <div class="text-white fw-bold fs-3 font-monospace">
+                        <span id="ramPercentValue" th:text="${ramPercent}">0</span>%
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="card card-metric h-100">
+                <div class="card-body p-4">
+                    <div class="card-title-label mb-2">Sistema (Física)</div>
+                    <div class="text-white fw-bold">
+                        Total: <span id="ramTotalValue" th:text="${ramTotal}">--</span><br>
+                        Usado: <span id="ramUsedValue" th:text="${ramUsado}">--</span><br>
+                        Livre: <span id="ramFreeValue" th:text="${ramLivre}">--</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="card card-metric h-100 border-start border-4 border-warning">
+                <div class="card-body p-4">
+                    <div class="card-title-label mb-2">Memória Virtual (Swap)</div>
+                    <div class="text-white fw-bold">
+                        Total: <span th:text="${swapInformation.totalSwap}">--</span><br>
+                        Usado: <span th:text="${swapInformation.usedSwap}">--</span><br>
+                        Livre: <span th:text="${swapInformation.freeSwap}">--</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h5 class="text-white mt-5 mb-3"><i class="bi bi-motherboard me-2"></i>Pentes Instalados (DIMM)</h5>
+    <div class="card card-metric mb-5">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-dark table-hover table-borderless mb-0">
+                    <thead class="border-bottom border-secondary border-opacity-25">
+                    <tr>
+                        <th class="ps-4 py-3 text-white-50 small text-uppercase">Slot</th>
+                        <th class="py-3 text-white-50 small text-uppercase">Fabricante</th>
+                        <th class="py-3 text-white-50 small text-uppercase">Tipo</th>
+                        <th class="py-3 text-white-50 small text-uppercase">Capacidade</th>
+                        <th class="pe-4 py-3 text-white-50 small text-uppercase text-end">Frequência</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:if="${#lists.isEmpty(physicalMemoryList)}">
+                        <td colspan="5" class="text-center text-white-50 py-4">Informação de hardware não disponível neste OS</td>
+                    </tr>
+                    <tr th:each="memory : ${physicalMemoryList}" class="align-middle">
+                        <td class="ps-4 py-3 fw-bold" th:text="${memory.bankLabel}"></td>
+                        <td class="py-3" th:text="${memory.manufacturer}"></td>
+                        <td class="py-3"><span class="badge bg-secondary" th:text="${memory.memoryType}"></span></td>
+                        <td class="py-3 font-monospace" th:text="${memory.capacity}"></td>
+                        <td class="pe-4 py-3 text-end font-monospace" th:text="${memory.clockSpeed}"></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="card card-metric">
+        <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="icon-box text-warning bg-warning bg-opacity-10" style="width: 24px; height: 24px;">
+                        <i class="bi bi-memory" style="font-size: 0.8rem;"></i>
+                    </div>
+                    <span class="card-title-label m-0">Uso da RAM em tempo real</span>
+                </div>
+                <h4 id="ramDetailedValue" class="text-white m-0 fw-bold font-monospace">--%</h4>
+            </div>
+            <div style="height: 300px; width: 100%;">
+                <canvas id="ramDetailedChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script th:src="@{/home/js/websocket-utils.js}"></script>
+<script th:src="@{home/js/ram-details.js}"></script>
+
+</body>
+</html>
