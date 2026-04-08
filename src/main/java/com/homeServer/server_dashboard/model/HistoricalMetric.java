@@ -4,9 +4,13 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.Table;
+
 import java.time.Instant;
 
 @Entity
+@Table(indexes = @Index(name = "idx_historical_recorded_at", columnList = "recordedAt"))
 public class HistoricalMetric {
     @Id
     @GeneratedValue(strategy= GenerationType.IDENTITY)

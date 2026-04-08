@@ -47,7 +47,7 @@ function escapeHtml(text) {
 
 function removeService(port, name) {
     if (!confirm('Remover o serviço "' + name + '" (porta ' + port + ')?')) return;
-    fetch('/api/services/' + port, { method: 'DELETE' })
+    fetchWithCsrf('/api/services/' + port, { method: 'DELETE' })
         .then(function(res) {
             if (res.ok || res.status === 204) return;
             throw new Error('Falha ao remover');
@@ -81,9 +81,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         addServiceBtn.disabled = true;
-        fetch('/api/services', {
+        fetchWithCsrf('/api/services', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: Object.assign({ 'Content-Type': 'application/json' }, getCsrfHeaders()),
             body: JSON.stringify({ name: name, port: port })
         })
         .then(function(res) {

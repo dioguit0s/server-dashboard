@@ -103,8 +103,10 @@ public class MonitorService {
     }
 
     public double getSystemLoadAverage() {
-        // Retorna a média de carga do sistema em 1 minuto
         double[] systemLoadAverages = hardwareLayer.getProcessor().getSystemLoadAverage(1);
+        if (systemLoadAverages == null || systemLoadAverages.length == 0) {
+            return -1;
+        }
         return systemLoadAverages[0];
     }
 
@@ -135,7 +137,7 @@ public class MonitorService {
     // ==========================================
     // MÉTRICAS DE DISCO ATUALIZADAS
     // ==========================================
-    public DiskMetrics getAdvancedDiskMetrics() {
+    public synchronized DiskMetrics getAdvancedDiskMetrics() {
         // 1. Partições / Volumes Lógicos
         List<OSFileStore> fileStoresList = operatingSystem.getFileSystem().getFileStores();
         long totalSpaceAvailable = 0;
@@ -205,7 +207,7 @@ public class MonitorService {
         return getAdvancedDiskMetrics().overallDiskInfo;
     }
 
-    public NetworkInfo getNetworkMetrics() {
+    public synchronized NetworkInfo getNetworkMetrics() {
         List<NetworkIF> networkInterfacesList = hardwareLayer.getNetworkIFs();
 
         long currentBytesReceived = 0;

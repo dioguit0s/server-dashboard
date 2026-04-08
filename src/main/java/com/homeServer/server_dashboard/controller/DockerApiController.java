@@ -1,7 +1,6 @@
 package com.homeServer.server_dashboard.controller;
 
 import com.homeServer.server_dashboard.service.DockerService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -11,8 +10,11 @@ import java.util.Map;
 @RequestMapping("/api/docker")
 public class DockerApiController {
 
-    @Autowired
-    private DockerService dockerService;
+    private final DockerService dockerService;
+
+    public DockerApiController(DockerService dockerService) {
+        this.dockerService = dockerService;
+    }
 
     @PostMapping("/{actionName}/{containerIdentifier}")
     public ResponseEntity<?> handleContainerAction(@PathVariable String actionName, @PathVariable String containerIdentifier) {

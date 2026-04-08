@@ -8,6 +8,10 @@ var StompReconnect = (function() {
     var maxReconnectDelay = 30000;
     var heartbeat = { incoming: 10000, outgoing: 10000 };
 
+    var activeSocket = null;
+    var activeStompClient = null;
+    var fallbackPollingIntervalId = null;
+
     function log() {
         var args = Array.prototype.slice.call(arguments);
         args.unshift(PREFIX, new Date().toISOString());
@@ -30,6 +34,45 @@ var StompReconnect = (function() {
         var el = getIndicator();
         el.classList.toggle('d-none', !show);
     }
+
+    function disconnectPrevious() {
+        if (activeStompClient) {
+            try {
+                activeStompClient.disconnect();
+            } catch (e) {
+                log('disconnect anterior (stomp):', e);
+            }
+            activeStompClient = null;
+        }
+        if (activeSocket) {
+            try {
+                activeSocket.onclose = null;
+                activeSocket.onerror = null;
+                activeSocket.close();
+            } catch (e) {
+                log('close socket anterior:', e);
+            }
+            activeSocket = null;
+        }
+    }
+
+    function clearFallbackPolling() {
+        if (fallbackPollingIntervalId !== null) {
+            clearInterval(fallbackPollingIntervalId);
+            fallbackPollingIntervalId = null;
+            log('Polling fallback interrompido (WebSocket reconectou ou página descarregando).');
+        }
+    }
+
+    function startPollingFallback(intervalMs, pollFn) {
+        clearFallbackPolling();
+        fallbackPollingIntervalId = setInterval(pollFn, intervalMs);
+    }
+
+    window.addEventListener('beforeunload', function() {
+        clearFallbackPolling();
+        disconnectPrevious();
+    });
 
     function connect(options) {
         var onConnect = options.onConnect || function() {};
@@ -66,13 +109,18 @@ var StompReconnect = (function() {
         }
 
         function doConnect() {
+            disconnectPrevious();
             log('Iniciando conexão SockJS para /ws ...');
             var socket = new SockJS('/ws');
             var stompClient = Stomp.over(socket);
+            activeSocket = socket;
+            activeStompClient = stompClient;
 
             stompClient.connect({ heartbeat: hb }, function(frame) {
                 reconnectDelay = 1000;
                 reconnectAttempts = 0;
+                fallbackActive = false;
+                clearFallbackPolling();
                 log('Conectado com sucesso. Frame:', frame ? frame.command : 'N/A');
                 if (showIndicator) showReconnecting(false);
                 onConnect(stompClient);
@@ -96,5 +144,9 @@ var StompReconnect = (function() {
         doConnect();
     }
 
-    return { connect: connect };
+    return {
+        connect: connect,
+        clearFallbackPolling: clearFallbackPolling,
+        startPollingFallback: startPollingFallback
+    };
 })();

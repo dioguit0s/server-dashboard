@@ -9,6 +9,7 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.thymeleaf.extras.springsecurity6.dialect.SpringSecurityDialect;
 
 @Configuration
@@ -25,8 +26,8 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/", "/charts", "/cpu-details", "/disk-details", "/ram-details", "/login", "/home/**", "/css/**", "/js/**", "/ws/**", "/api/metrics/public", "/api/metrics/history", "/favicon.ico", "/error").permitAll()
-                .requestMatchers("/processes", "/services", "/api/**").authenticated()
+                .requestMatchers("/", "/charts", "/cpu-details", "/disk-details", "/ram-details", "/login", "/home/**", "/css/**", "/js/**", "/ws/**", "/api/metrics/public", "/favicon.ico", "/error").permitAll()
+                .requestMatchers("/processes", "/services", "/containers", "/api/**").authenticated()
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form
@@ -37,6 +38,7 @@ public class SecurityConfig {
                 .logoutSuccessUrl("/")
             )
             .csrf(csrf -> csrf
+                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                 .ignoringRequestMatchers("/ws/**")
             )
             .headers(headers -> headers

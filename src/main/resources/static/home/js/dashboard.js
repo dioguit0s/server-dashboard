@@ -69,8 +69,8 @@ function startMetricsPolling() {
     _dashSource = 'Polling';
     _dashMsgCount = 0;
     console.log('[ServerDash Dashboard] Fallback: iniciando polling GET /api/metrics/public a cada 1s');
-    setInterval(function() {
-        fetch('/api/metrics/public')
+    StompReconnect.startPollingFallback(1000, function() {
+        fetch('/api/metrics/public', { credentials: 'same-origin' })
             .then(function(res) {
                 if (!res.ok) console.warn('[ServerDash Dashboard] Polling falhou:', res.status, res.statusText);
                 return res.ok ? res.json() : null;
@@ -79,7 +79,7 @@ function startMetricsPolling() {
             .catch(function(err) {
                 console.warn('[ServerDash Dashboard] Polling erro:', err);
             });
-    }, 1000);
+    });
 }
 
 console.log('Chamando StompReconnect.connect()...');

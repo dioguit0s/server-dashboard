@@ -5,10 +5,12 @@ import com.homeServer.server_dashboard.repository.HistoricalMetricRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 @Service
@@ -19,6 +21,9 @@ public class HistoricalMetricsService {
 
     @Autowired
     private MonitorService monitorService;
+
+    @Value("${dashboard.metrics.retention-days:30}")
+    private int retentionDays;
 
     @Scheduled(fixedRate = 60000) //executa a cada 1 minuto (60000 milisegundos)
     public void saveCurrentMetrics(){
@@ -37,6 +42,19 @@ public class HistoricalMetricsService {
 
         historicalMetricRepository.save(historicalMetric);
         log.info("[Historico] Metrica salva com sucesso (id aproximado/inserido a cada 1 min)");
+    }
+
+    /** Remove registros mais antigos que o período de retenção (executa 1x por dia). */
+    @Scheduled(cron = "0 0 3 * * *")
+    public void purgeOldMetrics() {
+        if (retentionDays < 1) {
+            log.warn("[Historico] Retenção inválida ({}), ignorando limpeza", retentionDays);
+            return;
+        }
+        Instant cutoff = Instant.now().minus(retentionDays, ChronoUnit.DAYS);
+        int removed = historicalMetricRepository.deleteByRecordedAtBefore(cutoff);
+        log.info("[Historico] Limpeza: removidos {} registros com recordedAt antes de {} (retentionDays={})",
+                removed, cutoff, retentionDays);
     }
 
     public List<HistoricalMetric> getMetricsSince(int hoursToRetrieve){

@@ -60,7 +60,8 @@ public class HomeController {
         model.addAttribute("logicalCores", monitorService.getLogicalProcessorCount());
         model.addAttribute("processorVendor", monitorService.getProcessorVendor());
         model.addAttribute("processorMicroarchitecture", monitorService.getProcessorMicroarchitecture());
-        model.addAttribute("systemLoadAverage", String.format("%.2f", monitorService.getSystemLoadAverage()));
+        double loadAvg = monitorService.getSystemLoadAverage();
+        model.addAttribute("systemLoadAverage", loadAvg < 0 ? "N/A" : String.format("%.2f", loadAvg));
         return "home/cpu-details";
     }
 

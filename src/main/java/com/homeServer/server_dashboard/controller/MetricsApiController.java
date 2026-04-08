@@ -21,6 +21,8 @@ import java.util.Map;
 public class MetricsApiController {
 
     private static final Logger log = LoggerFactory.getLogger(MetricsApiController.class);
+    private static final int MIN_HISTORY_HOURS = 1;
+    private static final int MAX_HISTORY_HOURS = 168;
 
     @Autowired
     private ScheduledMetricsService scheduledMetricsService;
@@ -34,7 +36,11 @@ public class MetricsApiController {
     }
 
     @GetMapping("/history")
-    public ResponseEntity<List<HistoricalMetric>> getHistorycalMetrics(@RequestParam(defaultValue = "1") int hoursToRetrieve) {
+    public ResponseEntity<?> getHistorycalMetrics(@RequestParam(defaultValue = "1") int hoursToRetrieve) {
+        if (hoursToRetrieve < MIN_HISTORY_HOURS || hoursToRetrieve > MAX_HISTORY_HOURS) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", "hoursToRetrieve deve estar entre " + MIN_HISTORY_HOURS + " e " + MAX_HISTORY_HOURS));
+        }
         log.info("[API /history] Requisicao recebida: hoursToRetrieve={}", hoursToRetrieve);
         List<HistoricalMetric> list = historicalMetricsService.getMetricsSince(hoursToRetrieve);
         log.info("[API /history] Respondendo com {} registros", list.size());

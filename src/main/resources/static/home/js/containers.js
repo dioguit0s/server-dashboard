@@ -1,6 +1,9 @@
-var webSocketConnection = new SockJS('/ws');
-var stompClientConnection = Stomp.over(webSocketConnection);
-stompClientConnection.debug = null;
+function escapeHtml(text) {
+    if (text == null || text === '') return '';
+    var div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
 
 function renderDockerContainers(containerList) {
     var tableBodyElement = document.getElementById('containersTableBody');
@@ -11,37 +14,81 @@ function renderDockerContainers(containerList) {
         return;
     }
 
-    var htmlContentString = '';
+    var fragment = document.createDocumentFragment();
     for (var indexNumber = 0; indexNumber < containerList.length; indexNumber++) {
         var currentContainer = containerList[indexNumber];
         var isRunningBoolean = currentContainer.containerState.toLowerCase() === 'running';
         var stateClassString = isRunningBoolean ? 'text-success' : 'text-danger';
         var stateIconString = isRunningBoolean ? 'bi-play-circle-fill' : 'bi-stop-circle-fill';
 
-        htmlContentString += '<tr class="align-middle">' +
-            '<td class="ps-4 py-2"><span class="text-white fw-bold">' + currentContainer.containerName + '</span><br><small class="text-white-50 font-monospace">' + currentContainer.containerIdentifier + '</small></td>' +
-            '<td class="py-2"><span class="' + stateClassString + ' fw-semibold"><i class="bi ' + stateIconString + ' me-1"></i>' + currentContainer.containerState + '</span><br><small class="text-white-50">' + currentContainer.containerStatus + '</small></td>' +
-            '<td class="py-2 text-end font-monospace text-white-50">' + currentContainer.cpuPercentage + '</td>' +
-            '<td class="py-2 text-end font-monospace text-white-50">' + currentContainer.memoryPercentage + '</td>' +
-            '<td class="py-2 text-end pe-4">' +
-            '<button class="btn btn-sm btn-outline-success me-1 container-action-button" data-action="start" data-identifier="' + currentContainer.containerIdentifier + '" title="Iniciar"><i class="bi bi-play-fill"></i></button>' +
-            '<button class="btn btn-sm btn-outline-warning me-1 container-action-button" data-action="restart" data-identifier="' + currentContainer.containerIdentifier + '" title="Reiniciar"><i class="bi bi-arrow-clockwise"></i></button>' +
-            '<button class="btn btn-sm btn-outline-danger container-action-button" data-action="stop" data-identifier="' + currentContainer.containerIdentifier + '" title="Parar"><i class="bi bi-stop-fill"></i></button>' +
-            '</td>' +
-            '</tr>';
-    }
-    tableBodyElement.innerHTML = htmlContentString;
+        var tr = document.createElement('tr');
+        tr.className = 'align-middle';
 
-    var actionButtonElements = document.querySelectorAll('.container-action-button');
-    for (var buttonIndex = 0; buttonIndex < actionButtonElements.length; buttonIndex++) {
-        var currentButton = actionButtonElements[buttonIndex];
-        currentButton.addEventListener('click', function(eventObject) {
+        var tdName = document.createElement('td');
+        tdName.className = 'ps-4 py-2';
+        var nameSpan = document.createElement('span');
+        nameSpan.className = 'text-white fw-bold';
+        nameSpan.textContent = currentContainer.containerName || '';
+        tdName.appendChild(nameSpan);
+        tdName.appendChild(document.createElement('br'));
+        var idSmall = document.createElement('small');
+        idSmall.className = 'text-white-50 font-monospace';
+        idSmall.textContent = currentContainer.containerIdentifier || '';
+        tdName.appendChild(idSmall);
+        tr.appendChild(tdName);
+
+        var tdState = document.createElement('td');
+        tdState.className = 'py-2';
+        var stateSpan = document.createElement('span');
+        stateSpan.className = stateClassString + ' fw-semibold';
+        stateSpan.innerHTML = '<i class="bi ' + stateIconString + ' me-1"></i>' + escapeHtml(currentContainer.containerState);
+        tdState.appendChild(stateSpan);
+        tdState.appendChild(document.createElement('br'));
+        var statusSmall = document.createElement('small');
+        statusSmall.className = 'text-white-50';
+        statusSmall.textContent = currentContainer.containerStatus || '';
+        tdState.appendChild(statusSmall);
+        tr.appendChild(tdState);
+
+        var tdCpu = document.createElement('td');
+        tdCpu.className = 'py-2 text-end font-monospace text-white-50';
+        tdCpu.textContent = currentContainer.cpuPercentage || '';
+        tr.appendChild(tdCpu);
+
+        var tdMem = document.createElement('td');
+        tdMem.className = 'py-2 text-end font-monospace text-white-50';
+        tdMem.textContent = currentContainer.memoryPercentage || '';
+        tr.appendChild(tdMem);
+
+        var tdActions = document.createElement('td');
+        tdActions.className = 'py-2 text-end pe-4';
+        ['start', 'restart', 'stop'].forEach(function(action) {
+            var btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'btn btn-sm me-1 container-action-button ' +
+                (action === 'start' ? 'btn-outline-success' : action === 'restart' ? 'btn-outline-warning' : 'btn-outline-danger');
+            btn.setAttribute('data-action', action);
+            btn.setAttribute('data-identifier', currentContainer.containerIdentifier || '');
+            btn.title = action === 'start' ? 'Iniciar' : action === 'restart' ? 'Reiniciar' : 'Parar';
+            var icon = document.createElement('i');
+            icon.className = 'bi ' + (action === 'start' ? 'bi-play-fill' : action === 'restart' ? 'bi-arrow-clockwise' : 'bi-stop-fill');
+            btn.appendChild(icon);
+            tdActions.appendChild(btn);
+        });
+        tr.appendChild(tdActions);
+
+        fragment.appendChild(tr);
+    }
+    tableBodyElement.appendChild(fragment);
+
+    tableBodyElement.querySelectorAll('.container-action-button').forEach(function(btn) {
+        btn.addEventListener('click', function(eventObject) {
             var buttonTarget = eventObject.currentTarget;
             var actionString = buttonTarget.getAttribute('data-action');
             var identifierString = buttonTarget.getAttribute('data-identifier');
             executeContainerAction(actionString, identifierString);
         });
-    }
+    });
 }
 
 function executeContainerAction(actionString, identifierString) {
@@ -49,11 +96,11 @@ function executeContainerAction(actionString, identifierString) {
         return;
     }
 
-    fetch('/api/docker/' + actionString + '/' + identifierString, {
+    fetchWithCsrf('/api/docker/' + encodeURIComponent(actionString) + '/' + encodeURIComponent(identifierString), {
         method: 'POST'
     }).then(function(responseObject) {
         if (responseObject.ok) {
-            // A interface será atualizada no próximo pulso do WebSocket
+            // Atualização no próximo pulso do WebSocket
         } else {
             alert('Falha ao executar a ação no container.');
         }
@@ -62,9 +109,12 @@ function executeContainerAction(actionString, identifierString) {
     });
 }
 
-stompClientConnection.connect({}, function (frameObject) {
-    stompClientConnection.subscribe('/topic/docker', function (messageObject) {
-        var parsedDataObject = JSON.parse(messageObject.body);
-        renderDockerContainers(parsedDataObject);
-    });
+StompReconnect.connect({
+    onConnect: function(stompClient) {
+        stompClient.subscribe('/topic/docker', function (messageObject) {
+            var parsedDataObject = JSON.parse(messageObject.body);
+            renderDockerContainers(parsedDataObject);
+        });
+    },
+    heartbeat: { incoming: 10000, outgoing: 10000 }
 });

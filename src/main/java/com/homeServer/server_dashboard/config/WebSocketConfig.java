@@ -2,8 +2,10 @@ package com.homeServer.server_dashboard.config;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -17,12 +19,18 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
+import org.springframework.web.socket.server.support.HttpSessionHandshakeInterceptor;
+
+import java.util.Arrays;
 
 @Configuration
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     private static final Logger log = LoggerFactory.getLogger(WebSocketConfig.class);
+
+    @Value("${dashboard.websocket.allowed-origin-patterns:*}")
+    private String allowedOriginPatterns;
 
     @Override
     public void configureClientInboundChannel(org.springframework.messaging.simp.config.ChannelRegistration registration) {
@@ -57,14 +65,27 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     }
 
     @Bean
+    @Primary
     public TaskScheduler heartbeatScheduler() {
-        return new ThreadPoolTaskScheduler();
+        ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
+        scheduler.setPoolSize(2);
+        scheduler.setThreadNamePrefix("ws-heartbeat-");
+        scheduler.initialize();
+        return scheduler;
     }
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
+        String[] patterns = Arrays.stream(allowedOriginPatterns.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .toArray(String[]::new);
+        if (patterns.length == 0) {
+            patterns = new String[]{"*"};
+        }
         registry.addEndpoint("/ws")
-                .setAllowedOriginPatterns("*")
+                .setAllowedOriginPatterns(patterns)
+                .addInterceptors(new HttpSessionHandshakeInterceptor())
                 .withSockJS();
     }
 }
