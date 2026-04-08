@@ -1,6 +1,6 @@
 
-Chart.defaults.color = '#64748b';
-Chart.defaults.font.family = "'Inter', sans-serif";
+Chart.defaults.color = 'rgba(255,255,255,0.5)';
+Chart.defaults.font.family = "'JetBrains Mono', ui-monospace, monospace";
 
 const commonOptions = {
     responsive: true,
@@ -8,10 +8,10 @@ const commonOptions = {
     plugins: {
         legend: { display: false },
         tooltip: {
-            backgroundColor: '#1e293b',
-            titleColor: '#f1f5f9',
-            bodyColor: '#cbd5e1',
-            borderColor: '#334155',
+            backgroundColor: '#000000',
+            titleColor: '#ffffff',
+            bodyColor: 'rgba(255,255,255,0.6)',
+            borderColor: 'rgba(255,255,255,0.1)',
             borderWidth: 1,
             padding: 10,
             displayColors: false,
@@ -30,7 +30,7 @@ const commonOptions = {
         y: {
             beginAtZero: true,
             grid: {
-                color: '#334155',
+                color: 'rgba(255,255,255,0.08)',
                 drawBorder: false,
                 tickLength: 0
             },
@@ -59,7 +59,7 @@ function createGradient(ctx, colorHex) {
 }
 
 const ctxCpu = document.getElementById('cpuChart').getContext('2d');
-const cpuGradient = createGradient(ctxCpu, '#3b82f6');
+const cpuGradient = createGradient(ctxCpu, '#0089ff');
 
 const cpuChart = new Chart(ctxCpu, {
     type: 'line',
@@ -68,7 +68,7 @@ const cpuChart = new Chart(ctxCpu, {
         datasets: [{
             label: 'CPU',
             data: [],
-            borderColor: '#3b82f6',
+            borderColor: '#0089ff',
             backgroundColor: cpuGradient,
             fill: true
         }]
@@ -83,7 +83,7 @@ const cpuChart = new Chart(ctxCpu, {
 });
 
 const ctxRam = document.getElementById('ramChart').getContext('2d');
-const ramGradient = createGradient(ctxRam, '#8b5cf6');
+const ramGradient = createGradient(ctxRam, '#0096ff');
 
 const ramChart = new Chart(ctxRam, {
     type: 'line',
@@ -92,7 +92,7 @@ const ramChart = new Chart(ctxRam, {
         datasets: [{
             label: 'RAM',
             data: [],
-            borderColor: '#8b5cf6',
+            borderColor: '#0096ff',
             backgroundColor: ramGradient,
             fill: true
         }]
@@ -107,7 +107,7 @@ const ramChart = new Chart(ctxRam, {
 });
 
 const ctxTemp = document.getElementById('tempChart').getContext('2d');
-const tempGradient = createGradient(ctxTemp, '#f59e0b');
+const tempGradient = createGradient(ctxTemp, '#48cae4');
 
 const tempChart = new Chart(ctxTemp, {
     type: 'line',
@@ -116,7 +116,7 @@ const tempChart = new Chart(ctxTemp, {
         datasets: [{
             label: 'Temp',
             data: [],
-            borderColor: '#f59e0b',
+            borderColor: '#48cae4',
             backgroundColor: tempGradient,
             fill: true
         }]
@@ -297,6 +297,7 @@ document.getElementById('buttonLastHour').addEventListener('click', function() {
     this.classList.add('active');
     document.getElementById('buttonRealTime').classList.remove('active');
     document.getElementById('buttonLastDay').classList.remove('active');
+    document.getElementById('buttonLastWeek').classList.remove('active');
     loadHistoricalData(1);
 });
 
@@ -304,6 +305,7 @@ document.getElementById('buttonLastDay').addEventListener('click', function() {
     this.classList.add('active');
     document.getElementById('buttonRealTime').classList.remove('active');
     document.getElementById('buttonLastHour').classList.remove('active');
+    document.getElementById('buttonLastWeek').classList.remove('active');
     loadHistoricalData(24);
 });
 
@@ -311,5 +313,6 @@ document.getElementById('buttonLastWeek').addEventListener('click', function() {
     this.classList.add('active');
     document.getElementById('buttonRealTime').classList.remove('active');
     document.getElementById('buttonLastHour').classList.remove('active');
+    document.getElementById('buttonLastDay').classList.remove('active');
     loadHistoricalData(168);
 });

@@ -17,14 +17,14 @@ function renderProcesses() {
     }
 
     tbody.innerHTML = processes.map(function(p, i) {
-        var cpuClass = parseFloat(p.cpuPercent) > 80 ? 'text-danger' : (parseFloat(p.cpuPercent) > 50 ? 'text-warning' : 'text-white');
-        var ramClass = parseFloat(p.ramPercent) > 80 ? 'text-danger' : (parseFloat(p.ramPercent) > 50 ? 'text-warning' : 'text-white');
+        var cpuClass = parseFloat(p.cpuPercent) > 80 ? 'text-signal-high' : (parseFloat(p.cpuPercent) > 50 ? 'text-signal-mid' : 'text-white');
+        var ramClass = parseFloat(p.ramPercent) > 80 ? 'text-signal-high' : (parseFloat(p.ramPercent) > 50 ? 'text-signal-mid' : 'text-white');
         return '<tr class="align-middle">' +
             '<td class="ps-4 py-2 text-white-50 small">' + (i + 1) + '</td>' +
             '<td class="py-2"><span class="text-white" title="' + escapeHtml(p.name) + '">' + escapeHtml(truncate(p.name, 45)) + '</span></td>' +
             '<td class="py-2 font-monospace text-white-50 small">' + p.pid + '</td>' +
-            '<td class="py-2 text-end pe-4 ' + cpuClass + ' fw-semibold">' + p.cpuPercent + '%</td>' +
-            '<td class="py-2 text-end pe-4 ' + ramClass + ' fw-semibold">' + p.ramPercent + '%</td>' +
+            '<td class="py-2 text-end pe-4 ' + cpuClass + ' fw-medium font-monospace">' + p.cpuPercent + '%</td>' +
+            '<td class="py-2 text-end pe-4 ' + ramClass + ' fw-medium font-monospace">' + p.ramPercent + '%</td>' +
             '<td class="py-2 text-end pe-4 text-white-50 font-monospace small">' + p.ramFormatted + '</td>' +
             '</tr>';
     }).join('');

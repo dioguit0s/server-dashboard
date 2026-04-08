@@ -23,7 +23,7 @@ var StompReconnect = (function() {
         if (!el) {
             el = document.createElement('div');
             el.id = 'ws-reconnect-indicator';
-            el.className = 'position-fixed top-0 start-50 translate-middle-x mt-3 px-3 py-2 rounded-pill bg-warning bg-opacity-90 text-dark small shadow z-1030 d-none';
+            el.className = 'position-fixed top-0 start-50 translate-middle-x mt-3 px-3 py-2 rounded-pill ws-reconnect-toast small z-1030 d-none';
             el.innerHTML = '<i class="bi bi-arrow-repeat spin me-2"></i>Reconectando...';
             document.body.appendChild(el);
         }

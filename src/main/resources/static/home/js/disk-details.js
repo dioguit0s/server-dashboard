@@ -1,6 +1,6 @@
 
-Chart.defaults.color = '#64748b';
-Chart.defaults.font.family = "'Inter', sans-serif";
+Chart.defaults.color = 'rgba(255,255,255,0.5)';
+Chart.defaults.font.family = "'JetBrains Mono', ui-monospace, monospace";
 
 var initialDiskInt = 0;
 var diskChartContainer = document.getElementById('diskChartContainer');
@@ -18,8 +18,8 @@ const diskPieChart = new Chart(diskPieCtx, {
         labels: ['Usado', 'Livre'],
         datasets: [{
             data: [usedPercent, freePercent],
-            backgroundColor: ['#22c55e', '#475569'],
-            borderColor: ['#1e293b', '#1e293b'],
+            backgroundColor: ['#0089ff', 'rgba(255,255,255,0.12)'],
+            borderColor: ['#000000', '#000000'],
             borderWidth: 2
         }]
     },
@@ -31,15 +31,15 @@ const diskPieChart = new Chart(diskPieCtx, {
                 display: true,
                 position: 'bottom',
                 labels: {
-                    color: '#94a3b8',
+                    color: 'rgba(255,255,255,0.6)',
                     padding: 16
                 }
             },
             tooltip: {
-                backgroundColor: '#1e293b',
-                titleColor: '#f1f5f9',
-                bodyColor: '#cbd5e1',
-                borderColor: '#334155',
+                backgroundColor: '#000000',
+                titleColor: '#ffffff',
+                bodyColor: 'rgba(255,255,255,0.6)',
+                borderColor: 'rgba(255,255,255,0.1)',
                 borderWidth: 1,
                 padding: 10,
                 callbacks: {

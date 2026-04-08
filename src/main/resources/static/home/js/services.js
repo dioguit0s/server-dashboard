@@ -9,23 +9,23 @@ function renderServices(services) {
 
     services.forEach(function(service) {
         var isOnline = service.online;
-        var colorClass = isOnline ? 'success' : 'danger';
         var iconClass = isOnline ? 'check-circle-fill' : 'exclamation-circle-fill';
         var statusText = isOnline ? 'ONLINE' : 'OFFLINE';
-        var borderClass = isOnline ? 'border-success' : 'border-danger';
+        var cardClass = isOnline ? 'service-card-online' : 'service-card-offline';
+        var badgeClass = isOnline ? 'badge-service-online' : 'badge-service-offline';
 
         var html = '<div class="col-12 col-md-6 col-lg-4">' +
-            '<div class="card card-metric h-100 border-start border-4 border-' + colorClass + '">' +
+            '<div class="card card-metric h-100 ' + cardClass + '">' +
             '<div class="card-body p-4 d-flex align-items-center justify-content-between gap-2">' +
             '<div class="flex-grow-1 min-width-0">' +
-            '<h5 class="text-white mb-1 fw-bold text-truncate">' + escapeHtml(service.name) + '</h5>' +
+            '<h5 class="text-white mb-1 fw-medium text-truncate">' + escapeHtml(service.name) + '</h5>' +
             '<div class="text-muted small">Porta: ' + service.port + '</div>' +
             '</div>' +
             '<div class="d-flex align-items-center gap-2 flex-shrink-0">' +
-            '<span class="badge rounded-pill bg-' + colorClass + ' bg-opacity-10 text-' + colorClass + ' border border-' + colorClass + ' border-opacity-25 px-3 py-2">' +
-            '<i class="bi bi-' + iconClass + ' me-1"></i> ' + statusText + '</span>' +
+            '<span class="badge ' + badgeClass + '">' +
+            '<i class="bi bi-' + iconClass + ' me-1" aria-hidden="true"></i> ' + statusText + '</span>' +
             '<button type="button" class="btn btn-outline-danger btn-sm p-2 btn-remove-service" data-port="' + service.port + '" data-name="' + escapeHtml(service.name) + '" title="Remover serviço">' +
-            '<i class="bi bi-trash"></i></button>' +
+            '<i class="bi bi-trash" aria-hidden="true"></i></button>' +
             '</div>' +
             '</div></div></div>';
         container.insertAdjacentHTML('beforeend', html);

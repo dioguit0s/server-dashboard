@@ -1,6 +1,6 @@
 
-Chart.defaults.color = '#64748b';
-Chart.defaults.font.family = "'Inter', sans-serif";
+Chart.defaults.color = 'rgba(255,255,255,0.5)';
+Chart.defaults.font.family = "'JetBrains Mono', ui-monospace, monospace";
 
 const commonOptions = {
     responsive: true,
@@ -8,10 +8,10 @@ const commonOptions = {
     plugins: {
         legend: { display: false },
         tooltip: {
-            backgroundColor: '#1e293b',
-            titleColor: '#f1f5f9',
-            bodyColor: '#cbd5e1',
-            borderColor: '#334155',
+            backgroundColor: '#000000',
+            titleColor: '#ffffff',
+            bodyColor: 'rgba(255,255,255,0.6)',
+            borderColor: 'rgba(255,255,255,0.1)',
             borderWidth: 1,
             padding: 10,
             displayColors: false,
@@ -32,7 +32,7 @@ const commonOptions = {
             min: 0,
             max: 100,
             grid: {
-                color: '#334155',
+                color: 'rgba(255,255,255,0.08)',
                 drawBorder: false,
                 tickLength: 0
             },
@@ -61,7 +61,7 @@ function createGradient(context, colorHex) {
 }
 
 const cpuDetailedChartContext = document.getElementById('cpuDetailedChart').getContext('2d');
-const cpuDetailedChartGradient = createGradient(cpuDetailedChartContext, '#3b82f6');
+const cpuDetailedChartGradient = createGradient(cpuDetailedChartContext, '#0089ff');
 
 const cpuDetailedChart = new Chart(cpuDetailedChartContext, {
     type: 'line',
@@ -70,7 +70,7 @@ const cpuDetailedChart = new Chart(cpuDetailedChartContext, {
         datasets: [{
             label: 'CPU',
             data: [],
-            borderColor: '#3b82f6',
+            borderColor: '#0089ff',
             backgroundColor: cpuDetailedChartGradient,
             fill: true
         }]

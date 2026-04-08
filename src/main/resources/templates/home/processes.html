@@ -7,29 +7,31 @@
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <link rel="stylesheet" th:href="@{home/styles/style.css}">
+    <link rel="stylesheet" th:href="@{/home/styles/style.css}">
 </head>
 <body>
 
 <nav class="navbar navbar-expand-lg navbar-dark navbar-blur fixed-top">
     <div class="container">
         <a class="navbar-brand d-flex align-items-center gap-2" href="/">
-            <i class="bi bi-hdd-rack-fill text-primary"></i>
-            <span>Server<span class="text-white-50 fw-light">Dash</span></span>
+            <i class="bi bi-hdd-rack-fill brand-mark" aria-hidden="true"></i>
+            <span>Server<span class="text-white-50 fw-normal">Dash</span></span>
         </a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbarCollapse"
+                aria-controls="mainNavbarCollapse" aria-expanded="false" aria-label="Alternar menu de navegação">
             <span class="navbar-toggler-icon"></span>
         </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <div class="navbar-nav ms-auto d-flex flex-row gap-4 align-items-center">
+        <div class="collapse navbar-collapse" id="mainNavbarCollapse">
+            <div class="navbar-nav ms-auto align-items-lg-center">
                 <a class="nav-link" href="/">Visão Geral</a>
                 <a class="nav-link" href="/charts">Histórico</a>
+                <span sec:authorize="isAuthenticated()"><a class="nav-link" href="/containers">Containers</a></span>
                 <span sec:authorize="isAuthenticated()"><a class="nav-link" href="/services">Serviços</a></span>
                 <span sec:authorize="isAuthenticated()"><a class="nav-link active" href="/processes">Processos</a></span>
                 <span sec:authorize="!isAuthenticated()"><a class="nav-link" th:href="@{/login}">Login</a></span>
                 <span sec:authorize="isAuthenticated()">
                     <form th:action="@{/logout}" method="post" class="d-inline">
-                        <button type="submit" class="btn btn-link nav-link p-0 border-0 bg-transparent text-white-50">Logout</button>
+                        <button type="submit" class="btn btn-link nav-link p-0 border-0 bg-transparent">Logout</button>
                     </form>
                 </span>
             </div>
@@ -41,11 +43,9 @@
 
 <div class="container pb-5">
     <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
-        <h4 class="text-white fw-bold m-0">Top Processos</h4>
-        <div class="d-flex align-items-center gap-2">
-            <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 px-3 py-2">
-                Atualização em Tempo Real
-            </span>
+        <h4 class="page-heading m-0">Top Processos</h4>
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+            <span class="badge badge-signal">Atualização em Tempo Real</span>
             <div class="btn-group" role="group">
                 <input type="radio" class="btn-check" name="sortBy" id="sortCpu" value="cpu" checked>
                 <label class="btn btn-outline-secondary btn-sm" for="sortCpu">
@@ -64,7 +64,7 @@
             <div class="table-responsive">
                 <table class="table table-dark table-hover table-borderless mb-0">
                     <thead>
-                        <tr class="border-bottom border-secondary border-opacity-25">
+                        <tr class="border-bottom border-metric-table">
                             <th class="ps-4 py-3 text-white-50 small fw-semibold text-uppercase">#</th>
                             <th class="py-3 text-white-50 small fw-semibold text-uppercase">Processo</th>
                             <th class="py-3 text-white-50 small fw-semibold text-uppercase">PID</th>
@@ -88,10 +88,11 @@
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
 <script th:src="@{/home/js/websocket-utils.js}"></script>
-<script th:src="@{home/js/processes.js}"></script>
+<script th:src="@{/home/js/processes.js}"></script>
 
 </body>
 </html>

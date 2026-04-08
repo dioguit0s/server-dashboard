@@ -20,11 +20,11 @@ function applyPublicMetrics(data) {
     var tempStatus = document.getElementById('tempStatus');
     if (tempBadge) {
         if (tempVal > 75) {
-            tempBadge.className = 'badge rounded-pill text-bg-danger';
-            if (tempStatus) { tempStatus.innerText = 'Aquecido'; tempStatus.className = 'text-danger fw-bold'; }
+            tempBadge.className = 'badge badge-service-offline';
+            if (tempStatus) { tempStatus.innerText = 'Aquecido'; tempStatus.className = 'text-danger fw-medium'; }
         } else {
-            tempBadge.className = 'badge rounded-pill text-bg-primary bg-opacity-25 text-primary';
-            if (tempStatus) { tempStatus.innerText = 'Estável'; tempStatus.className = 'text-white'; }
+            tempBadge.className = 'badge badge-soft text-white-50';
+            if (tempStatus) { tempStatus.innerText = 'Estável'; tempStatus.className = 'text-white fw-medium'; }
         }
     }
 
