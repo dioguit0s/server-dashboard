@@ -2,7 +2,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
 
 :root {
-    --bg-body: #0f172a;       /* Slate 900 */
+    --bg-body: #000000;       /* Slate 900 */
     --bg-card: #1e293b;       /* Slate 800 */
     --border-color: #334155;  /* Slate 700 */
     --text-main: #f1f5f9;     /* Slate 100 */

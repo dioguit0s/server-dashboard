@@ -7,7 +7,7 @@
 
 > **Uma solução completa de monitoramento de infraestrutura leve e em tempo real, projetada para servidores Linux com foco em segurança e usabilidade.**
 
-## 📖 Sobre o Projeto
+## 📖 Sobre o Projeto Atual
 
 O **Server Dashboard** é uma aplicação Full Stack desenvolvida para demonstrar a implementação de uma arquitetura moderna utilizando **Java 25** e **Spring Boot 4**.
 
