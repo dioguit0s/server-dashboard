@@ -93,3 +93,11 @@ StompReconnect.connect({
     maxReconnectAttempts: 5,
     heartbeat: { incoming: 10000, outgoing: 10000 }
 });
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then(reg => console.log('Service Worker registrado!', reg))
+      .catch(err => console.error('Erro ao registrar Service Worker', err));
+  });
+}
