@@ -7,7 +7,7 @@
 
 > **Uma solução completa de monitoramento de infraestrutura leve e em tempo real, projetada para servidores Linux com foco em segurança e usabilidade.**
 
-## 📖 Sobre o Projeto
+## 📖 Sobre o Projeto Atual
 
 O **Server Dashboard** é uma aplicação Full Stack desenvolvida para demonstrar a implementação de uma arquitetura moderna utilizando **Java 25** e **Spring Boot 4**.
 
@@ -28,7 +28,7 @@ Acesso instantâneo às métricas vitais do servidor via **WebSockets (STOMP)** 
 Implementação de **Spring Security** para proteção de áreas sensíveis.
 * **Controle de Acesso:** Rotas administrativas protegidas (Login necessário).
 * **Autenticação:** Sistema de login customizado para administrador.
-* **Segregação:** Dados públicos (Dashboard) vs Dados sensíveis (Processos e Serviços).
+* **Segregação:** Dados públicos (Dashboard) vs Dados sensíveis (Processos, Serviços e Containers).
 
 ### ⚙️ Gestão Avançada (Área Restrita)
 Ferramentas exclusivas para o administrador logado:
@@ -37,6 +37,12 @@ Ferramentas exclusivas para o administrador logado:
     * Adicione ou remova portas TCP para monitoramento (Health Check) diretamente pela interface.
     * Verificação de status (Online/Offline) de containers Docker, Bancos de Dados, etc.
     * **Persistência:** As configurações de serviços são salvas automaticamente em JSON (`data/monitored-services.json`), mantendo o estado entre reinícios.
+* **Painel de Containers Docker** (`/containers`):
+    * Uso de CPU e RAM por container em tempo real via Docker Engine.
+    * Controles de **Start**, **Stop** e **Restart** por container.
+    * Filtro por estado (running/parados) e detecção de Docker indisponível.
+* **Visualizador de Logs** (`/logs?container=ID`):
+    * Exibe as últimas linhas de log de um container com atualização manual ou auto-refresh.
 
 ## 🛠️ Tech Stack
 
@@ -58,6 +64,8 @@ Ferramentas exclusivas para o administrador logado:
 ### Pré-requisitos
 * Java JDK 25 instalado.
 * Git.
+* **Docker CLI** disponível no `PATH` (necessário para o painel de containers e logs).
+* No Linux, o usuário que executa a aplicação deve pertencer ao grupo `docker` para permitir `docker stats`, `docker start|stop|restart` e `docker logs`.
 
 ### Passo a Passo
 
@@ -83,9 +91,11 @@ Ferramentas exclusivas para o administrador logado:
 4.  **Acesse:**
     * **Dashboard Público:** `http://localhost:8080`
     * **Área Admin:** Clique em "Login" e use as credenciais configuradas.
+    * **Containers:** `http://localhost:8080/containers` (após login)
+    * **Logs de container:** `http://localhost:8080/logs?container=<ID>` (após login)
 
 - [ ] **Controle de processos:** Possibilidade de encerrar processos diretamente pelo painel de processos.
-- [ ] **Painel de controle de Containers:** Feature para verificar uso de CPU/RAM de cada container e controles para Start,Stop e Restart naquele container especificos.
+- [x] **Painel de controle de Containers:** CPU/RAM por container, Start/Stop/Restart e visualizador de logs.
 - [ ] **Teste de Ping/Latencia:** Realizar um teste de ping no ip digitado pelo usuario no dashboard
 
 ---

@@ -119,4 +119,10 @@ public class HomeController {
         model.addAttribute("osName", monitorService.getOsInfo());
         return "home/containers";
     }
+
+    @GetMapping("/logs")
+    public String logs(Model model) {
+        model.addAttribute("osName", monitorService.getOsInfo());
+        return "home/logs";
+    }
 }

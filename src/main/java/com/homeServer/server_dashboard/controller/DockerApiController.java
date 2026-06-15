@@ -5,10 +5,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import java.util.regex.Pattern;
 
 @RestController
 @RequestMapping("/api/docker")
 public class DockerApiController {
+
+    private static final Pattern CONTAINER_ID_PATTERN =
+            Pattern.compile("^([a-f0-9]{12,64}|[a-zA-Z0-9][a-zA-Z0-9_.-]{0,127})$");
 
     private final DockerService dockerService;
 
@@ -22,11 +26,38 @@ public class DockerApiController {
             return ResponseEntity.badRequest().body(Map.of("error", "Ação inválida solicitada"));
         }
 
+        if (!isValidContainerIdentifier(containerIdentifier)) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Identificador de container inválido"));
+        }
+
         boolean actionResult = dockerService.executeActionOnContainer(actionName, containerIdentifier);
         if (actionResult) {
             return ResponseEntity.ok(Map.of("message", "Ação executada com sucesso"));
         } else {
             return ResponseEntity.internalServerError().body(Map.of("error", "Falha ao executar a ação no container"));
         }
+    }
+
+    @GetMapping("/{containerIdentifier}/logs")
+    public ResponseEntity<?> retrieveContainerLogs(
+            @PathVariable String containerIdentifier,
+            @RequestParam(defaultValue = "200") int tail) {
+        if (!isValidContainerIdentifier(containerIdentifier)) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Identificador de container inválido"));
+        }
+
+        String logs = dockerService.retrieveContainerLogs(containerIdentifier, tail);
+        if (logs == null) {
+            return ResponseEntity.internalServerError().body(Map.of("error", "Falha ao obter logs do container"));
+        }
+
+        return ResponseEntity.ok(Map.of(
+                "containerIdentifier", containerIdentifier,
+                "logs", logs
+        ));
+    }
+
+    private boolean isValidContainerIdentifier(String containerIdentifier) {
+        return containerIdentifier != null && CONTAINER_ID_PATTERN.matcher(containerIdentifier).matches();
     }
 }

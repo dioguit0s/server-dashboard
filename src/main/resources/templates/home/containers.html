@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="_csrf" th:content="${_csrf.token}"/>
     <title>Containers Docker</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -47,7 +48,22 @@
 <div class="container pb-5">
     <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
         <h4 class="page-heading m-0">Painel de Containers</h4>
-        <span class="badge badge-signal">Status via Docker Engine</span>
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+            <span class="badge badge-signal">Status via Docker Engine</span>
+            <div class="btn-group" role="group">
+                <input type="radio" class="btn-check" name="stateFilter" id="filterAll" value="all" checked>
+                <label class="btn btn-outline-secondary btn-sm" for="filterAll">Todos</label>
+                <input type="radio" class="btn-check" name="stateFilter" id="filterRunning" value="running">
+                <label class="btn btn-outline-secondary btn-sm" for="filterRunning">Running</label>
+                <input type="radio" class="btn-check" name="stateFilter" id="filterStopped" value="stopped">
+                <label class="btn btn-outline-secondary btn-sm" for="filterStopped">Parados</label>
+            </div>
+        </div>
+    </div>
+
+    <div id="dockerUnavailableBanner" class="alert alert-warning d-none mb-4" role="alert">
+        <i class="bi bi-exclamation-triangle me-2"></i>
+        Docker Engine indisponível ou sem permissão.
     </div>
 
     <div class="card card-metric">
@@ -73,6 +89,8 @@
         </div>
     </div>
 </div>
+
+<div class="toast-container position-fixed bottom-0 end-0 p-3" id="toastContainer"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
