@@ -103,9 +103,10 @@ public class LogViewerService {
     public Map<String, Object> listSources() {
         List<Map<String, String>> containers = dockerService.retrieveAllContainers().stream()
                 .map(c -> Map.of(
-                        "id", c.containerIdentifier,
-                        "name", c.containerName,
-                        "state", c.containerState))
+                        "id", nullToEmpty(c.containerIdentifier),
+                        "name", nullToEmpty(c.containerName),
+                        "state", nullToEmpty(c.containerState),
+                        "status", nullToEmpty(c.containerStatus)))
                 .collect(Collectors.toList());
 
         List<String> units = listRunningSystemdUnits();
@@ -116,6 +117,10 @@ public class LogViewerService {
         sources.put("units", units);
         sources.put("unitsAvailable", unitsAvailable);
         return sources;
+    }
+
+    private static String nullToEmpty(String value) {
+        return value != null ? value : "";
     }
 
     private LogFetchResult runCommand(ProcessBuilder processBuilder) {

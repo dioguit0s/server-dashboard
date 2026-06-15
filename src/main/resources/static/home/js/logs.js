@@ -145,9 +145,12 @@ function populateContainerSelect(containers, preselectId) {
     select.innerHTML = '<option value="">Selecione um container...</option>';
     containers.forEach(function(c) {
         var option = document.createElement('option');
-        option.value = c.id;
-        option.textContent = c.name + ' (' + c.id.substring(0, 12) + ') — ' + c.state;
-        if (preselectId && (c.id === preselectId || c.name === preselectId)) {
+        var id = c.id || c.containerIdentifier || '';
+        var name = c.name || c.containerName || id;
+        var state = c.state || c.containerState || '';
+        option.value = id;
+        option.textContent = name + (id ? ' (' + id.substring(0, 12) + ')' : '') + (state ? ' — ' + state : '');
+        if (preselectId && (id === preselectId || name === preselectId)) {
             option.selected = true;
         }
         select.appendChild(option);

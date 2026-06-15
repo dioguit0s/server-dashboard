@@ -1,9 +1,11 @@
 package com.homeServer.server_dashboard.controller;
 
 import com.homeServer.server_dashboard.service.DockerService;
+import com.homeServer.server_dashboard.service.DockerService.DockerContainerInformation;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
@@ -18,6 +20,11 @@ public class DockerApiController {
 
     public DockerApiController(DockerService dockerService) {
         this.dockerService = dockerService;
+    }
+
+    @GetMapping("/containers")
+    public ResponseEntity<Map<String, List<DockerContainerInformation>>> listContainers() {
+        return ResponseEntity.ok(Map.of("containers", dockerService.retrieveAllContainers()));
     }
 
     @PostMapping("/{actionName}/{containerIdentifier}")

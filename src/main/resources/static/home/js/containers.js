@@ -34,6 +34,55 @@ function showToast(message, type) {
     });
 }
 
+function normalizeContainer(container) {
+    if (!container) return null;
+    return {
+        containerIdentifier: container.containerIdentifier || container.id || '',
+        containerName: container.containerName || container.name || '',
+        containerState: container.containerState || container.state || '',
+        containerStatus: container.containerStatus || container.status || '',
+        cpuPercentage: container.cpuPercentage || '0.00%',
+        memoryPercentage: container.memoryPercentage || '0.00%'
+    };
+}
+
+function applyContainers(containerList) {
+    _hasReceivedData = true;
+    window.lastContainers = (containerList || [])
+        .map(normalizeContainer)
+        .filter(function(c) { return c && c.containerIdentifier; });
+    updateDockerBanner(window.lastContainers);
+    renderDockerContainers();
+}
+
+function loadContainersFromApi() {
+    return fetch('/api/docker/containers')
+        .then(function(response) {
+            return response.json().then(function(body) {
+                if (!response.ok) {
+                    throw new Error(body.error || 'Falha ao carregar containers');
+                }
+                applyContainers(body.containers);
+            });
+        })
+        .catch(function(err) {
+            console.error('[containers]', err);
+            if (!_hasReceivedData) {
+                _hasReceivedData = true;
+                window.lastContainers = [];
+                updateDockerBanner(window.lastContainers);
+                renderDockerContainers();
+            } else {
+                showToast(err.message || 'Erro ao atualizar containers', 'danger');
+            }
+        });
+}
+
+function startContainersPolling() {
+    loadContainersFromApi();
+    StompReconnect.startPollingFallback(3000, loadContainersFromApi);
+}
+
 function updateDockerBanner(containerList) {
     var banner = document.getElementById('dockerUnavailableBanner');
     if (!containerList || containerList.length === 0) {
@@ -209,13 +258,11 @@ function executeContainerAction(actionString, identifierString, rowElement) {
 
 StompReconnect.connect({
     onConnect: function(stompClient) {
+        loadContainersFromApi();
         stompClient.subscribe('/topic/docker', function(messageObject) {
-            var parsedDataObject = JSON.parse(messageObject.body);
-            _hasReceivedData = true;
-            window.lastContainers = parsedDataObject || [];
-            updateDockerBanner(window.lastContainers);
-            renderDockerContainers();
+            applyContainers(JSON.parse(messageObject.body));
         });
     },
+    onFallbackToPolling: startContainersPolling,
     heartbeat: { incoming: 10000, outgoing: 10000 }
 });
