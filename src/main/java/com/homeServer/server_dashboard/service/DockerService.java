@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 @Service
 public class DockerService {
@@ -99,35 +98,4 @@ public class DockerService {
         }
     }
 
-    public String retrieveContainerLogs(String containerIdentifier, int tailLines) {
-        if (containerIdentifier == null || !CONTAINER_REF_PATTERN.matcher(containerIdentifier.trim()).matches()) {
-            log.warn("Identificador de container rejeitado por validação: {}", containerIdentifier);
-            return null;
-        }
-        String id = containerIdentifier.trim();
-        int boundedTailLines = Math.max(50, Math.min(500, tailLines));
-        try {
-            ProcessBuilder processBuilder = new ProcessBuilder(
-                    "docker", "logs", "--tail", String.valueOf(boundedTailLines), id);
-            processBuilder.redirectErrorStream(true);
-            Process process = processBuilder.start();
-            String output;
-            try (BufferedReader reader = new BufferedReader(
-                    new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
-                output = reader.lines().collect(Collectors.joining("\n"));
-            }
-            if (!process.waitFor(120, TimeUnit.SECONDS)) {
-                process.destroyForcibly();
-                log.warn("docker logs {} excedeu o tempo limite (120s)", id);
-                return null;
-            }
-            if (process.exitValue() != 0) {
-                return null;
-            }
-            return output;
-        } catch (Exception exception) {
-            log.warn("Falha ao obter logs do container {}: {}", id, exception.getMessage());
-            return null;
-        }
-    }
 }

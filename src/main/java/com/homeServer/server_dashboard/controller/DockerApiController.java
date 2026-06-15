@@ -38,25 +38,6 @@ public class DockerApiController {
         }
     }
 
-    @GetMapping("/{containerIdentifier}/logs")
-    public ResponseEntity<?> retrieveContainerLogs(
-            @PathVariable String containerIdentifier,
-            @RequestParam(defaultValue = "200") int tail) {
-        if (!isValidContainerIdentifier(containerIdentifier)) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Identificador de container inválido"));
-        }
-
-        String logs = dockerService.retrieveContainerLogs(containerIdentifier, tail);
-        if (logs == null) {
-            return ResponseEntity.internalServerError().body(Map.of("error", "Falha ao obter logs do container"));
-        }
-
-        return ResponseEntity.ok(Map.of(
-                "containerIdentifier", containerIdentifier,
-                "logs", logs
-        ));
-    }
-
     private boolean isValidContainerIdentifier(String containerIdentifier) {
         return containerIdentifier != null && CONTAINER_ID_PATTERN.matcher(containerIdentifier).matches();
     }

@@ -4,34 +4,39 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="_csrf" th:content="${_csrf.token}"/>
-    <title>Logs do Container</title>
+    <title>Logs</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <link rel="stylesheet" th:href="@{home/styles/style.css}">
+    <link rel="stylesheet" th:href="@{/home/styles/style.css}">
+
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#0f0f0f">
 </head>
 <body>
 
 <nav class="navbar navbar-expand-lg navbar-dark navbar-blur fixed-top">
     <div class="container">
         <a class="navbar-brand d-flex align-items-center gap-2" href="/">
-            <i class="bi bi-hdd-rack-fill text-primary"></i>
-            <span>Server<span class="text-white-50 fw-light">Dash</span></span>
+            <i class="bi bi-hdd-rack-fill brand-mark" aria-hidden="true"></i>
+            <span>Server<span class="text-white-50 fw-normal">Dash</span></span>
         </a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbarCollapse"
+                aria-controls="mainNavbarCollapse" aria-expanded="false" aria-label="Alternar menu de navegação">
             <span class="navbar-toggler-icon"></span>
         </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <div class="navbar-nav ms-auto d-flex flex-row gap-4 align-items-center">
+        <div class="collapse navbar-collapse" id="mainNavbarCollapse">
+            <div class="navbar-nav ms-auto align-items-lg-center">
                 <a class="nav-link" href="/">Visão Geral</a>
                 <a class="nav-link" href="/charts">Histórico</a>
+                <span sec:authorize="isAuthenticated()"><a class="nav-link" href="/containers">Containers</a></span>
+                <span sec:authorize="isAuthenticated()"><a class="nav-link active" href="/logs">Logs</a></span>
                 <span sec:authorize="isAuthenticated()"><a class="nav-link" href="/services">Serviços</a></span>
                 <span sec:authorize="isAuthenticated()"><a class="nav-link" href="/processes">Processos</a></span>
-                <span sec:authorize="isAuthenticated()"><a class="nav-link" href="/containers">Containers</a></span>
                 <span sec:authorize="!isAuthenticated()"><a class="nav-link" th:href="@{/login}">Login</a></span>
                 <span sec:authorize="isAuthenticated()">
                     <form th:action="@{/logout}" method="post" class="d-inline">
-                        <button type="submit" class="btn btn-link nav-link p-0 border-0 bg-transparent text-white-50">Logout</button>
+                        <button type="submit" class="btn btn-link nav-link p-0 border-0 bg-transparent">Logout</button>
                     </form>
                 </span>
             </div>
@@ -43,23 +48,67 @@
 
 <div class="container pb-5">
     <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
-        <div class="d-flex align-items-center gap-3">
-            <a href="/containers" class="btn btn-outline-secondary btn-sm">
-                <i class="bi bi-arrow-left me-1"></i> Voltar
-            </a>
-            <h4 class="text-white fw-bold m-0">Logs do Container</h4>
-        </div>
+        <h4 class="page-heading m-0">Logs</h4>
         <div class="d-flex align-items-center gap-2 flex-wrap">
-            <span id="containerBadge" class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 px-3 py-2 font-monospace">
-                —
-            </span>
+            <label class="text-white-50 small mb-0" for="tailInput">Linhas</label>
+            <input type="number" id="tailInput" class="form-control form-control-sm bg-dark text-white border-secondary"
+                   value="100" min="10" max="500" style="width: 5rem;">
             <button type="button" id="refreshLogsBtn" class="btn btn-outline-primary btn-sm">
                 <i class="bi bi-arrow-clockwise me-1"></i> Atualizar
             </button>
+            <button type="button" id="copyLogsBtn" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-clipboard me-1"></i> Copiar logs
+            </button>
             <div class="form-check form-switch mb-0">
                 <input class="form-check-input" type="checkbox" id="autoRefreshToggle">
-                <label class="form-check-label text-white-50 small" for="autoRefreshToggle">Auto-refresh (3s)</label>
+                <label class="form-check-label text-white-50 small" for="autoRefreshToggle">Auto-refresh (5s)</label>
             </div>
+        </div>
+    </div>
+
+    <ul class="nav nav-tabs mb-3" id="logsTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="dockerTabBtn" data-bs-toggle="tab" data-bs-target="#dockerTab"
+                    type="button" role="tab" aria-controls="dockerTab" aria-selected="true">
+                <i class="bi bi-box me-1"></i> Docker
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="systemdTabBtn" data-bs-toggle="tab" data-bs-target="#systemdTab"
+                    type="button" role="tab" aria-controls="systemdTab" aria-selected="false">
+                <i class="bi bi-gear me-1"></i> Systemd
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content mb-3">
+        <div class="tab-pane fade show active" id="dockerTab" role="tabpanel" aria-labelledby="dockerTabBtn">
+            <div class="row g-2 align-items-end">
+                <div class="col-md-8">
+                    <label for="containerSelect" class="form-label text-white-50 small mb-1">Container</label>
+                    <select id="containerSelect" class="form-select bg-dark text-white border-secondary font-monospace">
+                        <option value="">Carregando containers...</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="tab-pane fade" id="systemdTab" role="tabpanel" aria-labelledby="systemdTabBtn">
+            <div class="row g-2 align-items-end">
+                <div class="col-md-6">
+                    <label for="unitSelect" class="form-label text-white-50 small mb-1">Serviço em execução</label>
+                    <select id="unitSelect" class="form-select bg-dark text-white border-secondary font-monospace">
+                        <option value="">Carregando serviços...</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label for="unitInput" class="form-label text-white-50 small mb-1">Outra unit (opcional)</label>
+                    <input type="text" id="unitInput" class="form-control bg-dark text-white border-secondary font-monospace"
+                           placeholder="ex.: nginx.service">
+                </div>
+            </div>
+            <p id="unitsUnavailableHint" class="text-white-50 small mt-2 mb-0 d-none">
+                Não foi possível listar serviços via systemctl. Informe o nome da unit manualmente.
+            </p>
         </div>
     </div>
 
@@ -67,7 +116,7 @@
 
     <div class="card card-metric">
         <div class="card-body p-0">
-            <pre id="logsOutput" class="text-white-50 small mb-0 p-4 font-monospace" style="max-height: 70vh; overflow-y: auto; white-space: pre-wrap; word-break: break-word;">Carregando logs...</pre>
+            <pre id="logsOutput" class="logs-output text-white-50 small mb-0 p-4 font-monospace">Selecione uma fonte de logs e clique em Atualizar.</pre>
         </div>
     </div>
 </div>
@@ -75,7 +124,7 @@
 <div class="toast-container position-fixed bottom-0 end-0 p-3" id="toastContainer"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-<script th:src="@{home/js/logs.js}"></script>
+<script th:src="@{/home/js/logs.js}"></script>
 
 </body>
 </html>

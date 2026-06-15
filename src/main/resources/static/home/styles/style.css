@@ -642,3 +642,10 @@ a.text-reset .card-metric:hover {
         padding: 1.25rem !important;
     }
 }
+
+.logs-output {
+    max-height: 70vh;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+}

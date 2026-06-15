@@ -29,6 +29,7 @@
                 <a class="nav-link" href="/">Visão Geral</a>
                 <a class="nav-link active" href="/charts">Histórico</a>
                 <span sec:authorize="isAuthenticated()"><a class="nav-link" href="/containers">Containers</a></span>
+                <span sec:authorize="isAuthenticated()"><a class="nav-link" href="/logs">Logs</a></span>
                 <span sec:authorize="isAuthenticated()"><a class="nav-link" href="/services">Serviços</a></span>
                 <span sec:authorize="isAuthenticated()"><a class="nav-link" href="/processes">Processos</a></span>
                 <span sec:authorize="!isAuthenticated()"><a class="nav-link" th:href="@{/login}">Login</a></span>
