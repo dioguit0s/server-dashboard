@@ -1,10 +1,12 @@
 package com.homeServer.server_dashboard.service;
 
 import org.springframework.stereotype.Service;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class DockerService {
@@ -57,6 +59,26 @@ public class DockerService {
             return exitCodeValue == 0;
         } catch (Exception exception) {
             return false;
+        }
+    }
+
+    public String retrieveContainerLogs(String containerIdentifier, int tailLines) {
+        int boundedTailLines = Math.max(50, Math.min(500, tailLines));
+        try {
+            ProcessBuilder processBuilder = new ProcessBuilder(
+                    "docker", "logs", "--tail", String.valueOf(boundedTailLines), containerIdentifier);
+            Process process = processBuilder.start();
+            String output;
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+                output = reader.lines().collect(Collectors.joining("\n"));
+            }
+            int exitCodeValue = process.waitFor();
+            if (exitCodeValue != 0) {
+                return null;
+            }
+            return output;
+        } catch (Exception exception) {
+            return null;
         }
     }
 }

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="_csrf" th:content="${_csrf.token}"/>
-    <title>Containers Docker</title>
+    <title>Logs do Container</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
@@ -27,7 +27,7 @@
                 <a class="nav-link" href="/charts">Histórico</a>
                 <span sec:authorize="isAuthenticated()"><a class="nav-link" href="/services">Serviços</a></span>
                 <span sec:authorize="isAuthenticated()"><a class="nav-link" href="/processes">Processos</a></span>
-                <span sec:authorize="isAuthenticated()"><a class="nav-link active" href="/containers">Containers</a></span>
+                <span sec:authorize="isAuthenticated()"><a class="nav-link" href="/containers">Containers</a></span>
                 <span sec:authorize="!isAuthenticated()"><a class="nav-link" th:href="@{/login}">Login</a></span>
                 <span sec:authorize="isAuthenticated()">
                     <form th:action="@{/logout}" method="post" class="d-inline">
@@ -43,47 +43,31 @@
 
 <div class="container pb-5">
     <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
-        <h4 class="text-white fw-bold m-0">Painel de Containers</h4>
+        <div class="d-flex align-items-center gap-3">
+            <a href="/containers" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-arrow-left me-1"></i> Voltar
+            </a>
+            <h4 class="text-white fw-bold m-0">Logs do Container</h4>
+        </div>
         <div class="d-flex align-items-center gap-2 flex-wrap">
-            <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 px-3 py-2">
-                Status via Docker Engine
+            <span id="containerBadge" class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 px-3 py-2 font-monospace">
+                —
             </span>
-            <div class="btn-group" role="group">
-                <input type="radio" class="btn-check" name="stateFilter" id="filterAll" value="all" checked>
-                <label class="btn btn-outline-secondary btn-sm" for="filterAll">Todos</label>
-                <input type="radio" class="btn-check" name="stateFilter" id="filterRunning" value="running">
-                <label class="btn btn-outline-secondary btn-sm" for="filterRunning">Running</label>
-                <input type="radio" class="btn-check" name="stateFilter" id="filterStopped" value="stopped">
-                <label class="btn btn-outline-secondary btn-sm" for="filterStopped">Parados</label>
+            <button type="button" id="refreshLogsBtn" class="btn btn-outline-primary btn-sm">
+                <i class="bi bi-arrow-clockwise me-1"></i> Atualizar
+            </button>
+            <div class="form-check form-switch mb-0">
+                <input class="form-check-input" type="checkbox" id="autoRefreshToggle">
+                <label class="form-check-label text-white-50 small" for="autoRefreshToggle">Auto-refresh (3s)</label>
             </div>
         </div>
     </div>
 
-    <div id="dockerUnavailableBanner" class="alert alert-warning d-none mb-4" role="alert">
-        <i class="bi bi-exclamation-triangle me-2"></i>
-        Docker Engine indisponível ou sem permissão.
-    </div>
+    <div id="logsError" class="alert alert-danger d-none" role="alert"></div>
 
     <div class="card card-metric">
         <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-dark table-hover table-borderless mb-0">
-                    <thead>
-                    <tr class="border-bottom border-secondary border-opacity-25">
-                        <th class="ps-4 py-3 text-white-50 small fw-semibold text-uppercase">Container</th>
-                        <th class="py-3 text-white-50 small fw-semibold text-uppercase">Status</th>
-                        <th class="py-3 text-white-50 small fw-semibold text-uppercase text-end">CPU %</th>
-                        <th class="py-3 text-white-50 small fw-semibold text-uppercase text-end">RAM %</th>
-                        <th class="py-3 text-white-50 small fw-semibold text-uppercase text-end pe-4">Ações</th>
-                    </tr>
-                    </thead>
-                    <tbody id="containersTableBody">
-                    <tr>
-                        <td colspan="5" class="text-center text-white-50 py-5">Aguardando telemetria do Docker...</td>
-                    </tr>
-                    </tbody>
-                </table>
-            </div>
+            <pre id="logsOutput" class="text-white-50 small mb-0 p-4 font-monospace" style="max-height: 70vh; overflow-y: auto; white-space: pre-wrap; word-break: break-word;">Carregando logs...</pre>
         </div>
     </div>
 </div>
@@ -91,10 +75,7 @@
 <div class="toast-container position-fixed bottom-0 end-0 p-3" id="toastContainer"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
-<script th:src="@{/home/js/websocket-utils.js}"></script>
-<script th:src="@{home/js/containers.js}"></script>
+<script th:src="@{home/js/logs.js}"></script>
 
 </body>
 </html>
