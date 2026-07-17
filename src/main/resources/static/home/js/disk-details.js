@@ -1,5 +1,5 @@
 
-Chart.defaults.color = 'rgba(255,255,255,0.5)';
+Chart.defaults.color = 'rgba(233,233,225,0.5)';
 Chart.defaults.font.family = "'JetBrains Mono', ui-monospace, monospace";
 
 var initialDiskInt = 0;
@@ -18,8 +18,8 @@ const diskPieChart = new Chart(diskPieCtx, {
         labels: ['Usado', 'Livre'],
         datasets: [{
             data: [usedPercent, freePercent],
-            backgroundColor: ['#0089ff', 'rgba(255,255,255,0.12)'],
-            borderColor: ['#000000', '#000000'],
+            backgroundColor: ['#FF2E88', 'rgba(233,233,225,0.12)'],
+            borderColor: ['#0D0D10', '#0D0D10'],
             borderWidth: 2
         }]
     },
@@ -31,15 +31,15 @@ const diskPieChart = new Chart(diskPieCtx, {
                 display: true,
                 position: 'bottom',
                 labels: {
-                    color: 'rgba(255,255,255,0.6)',
+                    color: 'rgba(233,233,225,0.7)',
                     padding: 16
                 }
             },
             tooltip: {
-                backgroundColor: '#000000',
-                titleColor: '#ffffff',
-                bodyColor: 'rgba(255,255,255,0.6)',
-                borderColor: 'rgba(255,255,255,0.1)',
+                backgroundColor: '#0D0D10',
+                titleColor: '#F4F4EC',
+                bodyColor: 'rgba(233,233,225,0.7)',
+                borderColor: 'rgba(233,233,225,0.16)',
                 borderWidth: 1,
                 padding: 10,
                 callbacks: {

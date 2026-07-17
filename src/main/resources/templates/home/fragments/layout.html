@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Nightwire layout fragments</title>
+</head>
+<body>
+
+<!-- ============================================================
+     head-assets: CSS/manifest/theme-color compartilhados
+     ============================================================ -->
+<th:block th:fragment="head-assets">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" th:href="@{/home/styles/style.css}">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#08080A">
+</th:block>
+
+<!-- ============================================================
+     bg-fx: camadas de textura CRT sutis (fixas atrás de tudo)
+     ============================================================ -->
+<th:block th:fragment="bg-fx">
+    <div class="bg-fx bg-glow"></div>
+    <div class="bg-fx bg-grain"></div>
+    <div class="bg-fx bg-scan"></div>
+</th:block>
+
+<!-- ============================================================
+     sidebar(active): navegação lateral 260px / offcanvas no mobile
+     ============================================================ -->
+<aside th:fragment="sidebar(active)" id="appSidebar"
+       class="app-sidebar offcanvas-lg offcanvas-start" tabindex="-1" aria-label="Navegação">
+    <div class="sidebar-brand">
+        <div class="sidebar-brand-mark" aria-hidden="true">S</div>
+        <div class="sidebar-brand-text">Server<span class="dim">Dash</span></div>
+        <button type="button" class="btn-close btn-close-white ms-auto d-lg-none"
+                data-bs-dismiss="offcanvas" data-bs-target="#appSidebar" aria-label="Fechar"></button>
+    </div>
+
+    <nav class="sidebar-nav">
+        <a class="sidebar-link" th:classappend="${active == 'overview'} ? ' active'" href="/">
+            <span>Visão Geral</span><span class="hotkey">F1</span>
+        </a>
+        <a class="sidebar-link" th:classappend="${active == 'history'} ? ' active'" href="/charts">
+            <span>Histórico</span><span class="hotkey">F2</span>
+        </a>
+        <span sec:authorize="isAuthenticated()">
+            <a class="sidebar-link" th:classappend="${active == 'containers'} ? ' active'" href="/containers">
+                <span>Containers</span><span class="hotkey">F3</span>
+            </a>
+        </span>
+        <span sec:authorize="isAuthenticated()">
+            <a class="sidebar-link" th:classappend="${active == 'logs'} ? ' active'" href="/logs">
+                <span>Logs</span><span class="hotkey">F4</span>
+            </a>
+        </span>
+        <span sec:authorize="isAuthenticated()">
+            <a class="sidebar-link" th:classappend="${active == 'services'} ? ' active'" href="/services">
+                <span>Serviços</span><span class="hotkey">F5</span>
+            </a>
+        </span>
+        <span sec:authorize="isAuthenticated()">
+            <a class="sidebar-link" th:classappend="${active == 'processes'} ? ' active'" href="/processes">
+                <span>Processos</span><span class="hotkey">F6</span>
+            </a>
+        </span>
+        <span sec:authorize="!isAuthenticated()">
+            <a class="sidebar-link" th:classappend="${active == 'login'} ? ' active'" th:href="@{/login}">
+                <span>Login</span><span class="hotkey">F9</span>
+            </a>
+        </span>
+        <span sec:authorize="isAuthenticated()">
+            <form th:action="@{/logout}" method="post" class="m-0">
+                <button type="submit" class="sidebar-link w-100">
+                    <span>Logout</span><span class="hotkey">F9</span>
+                </button>
+            </form>
+        </span>
+    </nav>
+
+    <div class="sidebar-foot">
+        <div class="op-row">
+            <span class="op-dot" aria-hidden="true"></span>
+            <span sec:authorize="isAuthenticated()">OPERADOR: admin</span>
+            <span sec:authorize="!isAuthenticated()">OPERADOR: guest</span>
+        </div>
+        <div>UPLINK ESTÁVEL</div>
+    </div>
+</aside>
+
+<!-- ============================================================
+     topbar: botão hambúrguer (só mobile) no topo do conteúdo
+     ============================================================ -->
+<div th:fragment="topbar" class="sidebar-toggle d-lg-none">
+    <button class="btn btn-outline-secondary btn-sm" type="button"
+            data-bs-toggle="offcanvas" data-bs-target="#appSidebar" aria-controls="appSidebar">
+        <i class="bi bi-list" aria-hidden="true"></i> Menu
+    </button>
+</div>
+
+</body>
+</html>

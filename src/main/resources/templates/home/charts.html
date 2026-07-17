@@ -4,114 +4,83 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Histórico de Performance</title>
-
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <link rel="stylesheet" th:href="@{/home/styles/style.css}">
-
-    <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#0f0f0f">
+    <th:block th:replace="~{home/fragments/layout :: head-assets}"></th:block>
 </head>
 <body>
 
-<nav class="navbar navbar-expand-lg navbar-dark navbar-blur fixed-top">
-    <div class="container">
-        <a class="navbar-brand d-flex align-items-center gap-2" href="/">
-            <i class="bi bi-hdd-rack-fill brand-mark" aria-hidden="true"></i>
-            <span>Server<span class="text-white-50 fw-normal">Dash</span></span>
-        </a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbarCollapse"
-                aria-controls="mainNavbarCollapse" aria-expanded="false" aria-label="Alternar menu de navegação">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="mainNavbarCollapse">
-            <div class="navbar-nav ms-auto align-items-lg-center">
-                <a class="nav-link" href="/">Visão Geral</a>
-                <a class="nav-link active" href="/charts">Histórico</a>
-                <span sec:authorize="isAuthenticated()"><a class="nav-link" href="/containers">Containers</a></span>
-                <span sec:authorize="isAuthenticated()"><a class="nav-link" href="/logs">Logs</a></span>
-                <span sec:authorize="isAuthenticated()"><a class="nav-link" href="/services">Serviços</a></span>
-                <span sec:authorize="isAuthenticated()"><a class="nav-link" href="/processes">Processos</a></span>
-                <span sec:authorize="!isAuthenticated()"><a class="nav-link" th:href="@{/login}">Login</a></span>
-                <span sec:authorize="isAuthenticated()">
-                    <form th:action="@{/logout}" method="post" class="d-inline">
-                        <button type="submit" class="btn btn-link nav-link p-0 border-0 bg-transparent">Logout</button>
-                    </form>
-                </span>
+<th:block th:replace="~{home/fragments/layout :: bg-fx}"></th:block>
+
+<div class="app-shell">
+    <div th:replace="~{home/fragments/layout :: sidebar('history')}"></div>
+
+    <main class="app-main">
+        <div th:replace="~{home/fragments/layout :: topbar}"></div>
+
+        <span class="eyebrow">// histórico</span>
+        <div class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3 mb-4">
+            <h1 class="page-heading m-0">Performance do Servidor</h1>
+            <div class="btn-group flex-wrap" role="group" aria-label="Intervalo de histórico">
+                <button type="button" class="btn btn-outline-primary btn-sm active" id="buttonRealTime">Tempo Real</button>
+                <button type="button" class="btn btn-outline-primary btn-sm" id="buttonLastHour">Última Hora</button>
+                <button type="button" class="btn btn-outline-primary btn-sm" id="buttonLastDay">Últimas 24h</button>
+                <button type="button" class="btn btn-outline-primary btn-sm" id="buttonLastWeek">Últimas Semana</button>
             </div>
         </div>
-    </div>
-</nav>
 
-<div style="height: 100px;"></div>
+        <div class="row g-4">
 
-<div class="container pb-5">
-    <div class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3 mb-4">
-        <h4 class="page-heading m-0">Performance do Servidor</h4>
-        <div class="btn-group flex-wrap" role="group" aria-label="Intervalo de histórico">
-            <button type="button" class="btn btn-outline-primary btn-sm active" id="buttonRealTime">Tempo Real</button>
-            <button type="button" class="btn btn-outline-primary btn-sm" id="buttonLastHour">Última Hora</button>
-            <button type="button" class="btn btn-outline-primary btn-sm" id="buttonLastDay">Últimas 24h</button>
-            <button type="button" class="btn btn-outline-primary btn-sm" id="buttonLastWeek">Últimas Semana</button>
-        </div>
-    </div>
-
-    <!-- Layout Grid -->
-    <div class="row g-4">
-
-        <!-- CPU Chart -->
-        <div class="col-12 col-lg-8">
-            <div class="card card-metric h-100">
-                <div class="card-body p-4">
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <div class="d-flex align-items-center gap-2">
-                            <div class="icon-box icon-box-metric" style="width: 24px; height: 24px;">
-                                <i class="bi bi-cpu" style="font-size: 0.8rem;" aria-hidden="true"></i>
+            <!-- CPU Chart -->
+            <div class="col-12 col-lg-8">
+                <div class="card card-metric h-100">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="icon-box icon-box-metric" style="width: 24px; height: 24px;">
+                                    <i class="bi bi-cpu" style="font-size: 0.8rem;" aria-hidden="true"></i>
+                                </div>
+                                <span class="card-title-label m-0">Carga da CPU</span>
                             </div>
-                            <span class="card-title-label m-0">Carga da CPU</span>
+                            <h4 id="cpuValue" class="m-0 fw-normal font-monospace" style="color: var(--text-heading);">--%</h4>
                         </div>
-                        <h4 id="cpuValue" class="text-white m-0 fw-normal font-monospace">--%</h4>
-                    </div>
-                    <div style="height: 300px; width: 100%;">
-                        <canvas id="cpuChart"></canvas>
+                        <div style="height: 300px; width: 100%;">
+                            <canvas id="cpuChart"></canvas>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Sidebar Stats -->
-        <div class="col-12 col-lg-4">
-            <div class="d-flex flex-column gap-4 h-100">
+            <!-- Sidebar Stats -->
+            <div class="col-12 col-lg-4">
+                <div class="d-flex flex-column gap-4 h-100">
 
-                <!-- RAM Chart Card -->
-                <div class="card card-metric flex-grow-1">
-                    <div class="card-body p-4 d-flex flex-column">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <span class="card-title-label m-0">Uso de RAM</span>
-                            <h5 id="ramValue" class="text-white m-0 font-monospace">--%</h5>
-                        </div>
-                        <div class="flex-grow-1" style="min-height: 150px;">
-                            <canvas id="ramChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Temp Chart Card -->
-                <div class="card card-metric flex-grow-1">
-                    <div class="card-body p-4 d-flex flex-column">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <span class="card-title-label m-0">Temperatura</span>
-                            <h5 id="tempValue" class="text-white m-0 font-monospace">--°C</h5>
-                        </div>
-                        <div class="flex-grow-1" style="min-height: 150px;">
-                            <canvas id="tempChart"></canvas>
+                    <div class="card card-metric flex-grow-1">
+                        <div class="card-body p-4 d-flex flex-column">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <span class="card-title-label m-0">Uso de RAM</span>
+                                <h5 id="ramValue" class="m-0 font-monospace" style="color: var(--text-heading);">--%</h5>
+                            </div>
+                            <div class="flex-grow-1" style="min-height: 150px;">
+                                <canvas id="ramChart"></canvas>
+                            </div>
                         </div>
                     </div>
-                </div>
 
+                    <div class="card card-metric flex-grow-1">
+                        <div class="card-body p-4 d-flex flex-column">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <span class="card-title-label m-0">Temperatura</span>
+                                <h5 id="tempValue" class="m-0 font-monospace" style="color: var(--text-heading);">--°C</h5>
+                            </div>
+                            <div class="flex-grow-1" style="min-height: 150px;">
+                                <canvas id="tempChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
             </div>
         </div>
-    </div>
+    </main>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>

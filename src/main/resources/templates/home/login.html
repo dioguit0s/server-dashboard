@@ -4,79 +4,57 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Login — Server Dashboard</title>
-
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <link rel="stylesheet" th:href="@{/home/styles/style.css}">
-
-    <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#0f0f0f">
+    <th:block th:replace="~{home/fragments/layout :: head-assets}"></th:block>
 </head>
 <body>
 
-<nav class="navbar navbar-expand-lg navbar-dark navbar-blur fixed-top">
-    <div class="container">
-        <a class="navbar-brand d-flex align-items-center gap-2" href="/">
-            <i class="bi bi-hdd-rack-fill brand-mark" aria-hidden="true"></i>
-            <span>Server<span class="text-white-50 fw-normal">Dash</span></span>
-        </a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbarCollapse"
-                aria-controls="mainNavbarCollapse" aria-expanded="false" aria-label="Alternar menu de navegação">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="mainNavbarCollapse">
-            <div class="navbar-nav ms-auto align-items-lg-center">
-                <a class="nav-link" href="/">Visão Geral</a>
-                <a class="nav-link" href="/charts">Histórico</a>
-                <a class="nav-link active" th:href="@{/login}">Login</a>
-            </div>
-        </div>
-    </div>
-</nav>
+<th:block th:replace="~{home/fragments/layout :: bg-fx}"></th:block>
 
-<div style="height: 100px;"></div>
-
-<div class="container pb-5">
-    <div class="row justify-content-center">
+<div class="container py-5" style="position: relative; z-index: 1; min-height: 100vh; display: flex; align-items: center;">
+    <div class="row justify-content-center w-100 m-0">
         <div class="col-12 col-sm-10 col-md-6 col-lg-5">
+
+            <!-- Marca -->
+            <div class="d-flex align-items-center gap-2 justify-content-center mb-4">
+                <div class="sidebar-brand-mark" aria-hidden="true">S</div>
+                <div class="sidebar-brand-text" style="font-size: 20px;">Server<span class="dim">Dash</span></div>
+            </div>
+
             <div class="card card-metric">
                 <div class="card-body p-4 p-md-5">
-                    <div class="d-flex align-items-center gap-3 mb-4">
-                        <div class="icon-box icon-box-metric icon-box-lg">
-                            <i class="bi bi-shield-lock fs-4" aria-hidden="true"></i>
-                        </div>
-                        <div>
-                            <span class="card-title-label">Acesso restrito</span>
-                            <h4 class="m-0 text-white fw-normal section-subheading">Acesso Admin</h4>
-                        </div>
+                    <div class="mb-4">
+                        <span class="eyebrow">// acesso_restrito</span>
+                        <h4 class="m-0 section-subheading">Acesso Admin</h4>
                     </div>
 
-                    <div th:if="${param.error}" class="alert alert-danger bg-danger bg-opacity-10 border border-danger border-opacity-25 text-danger mb-4" role="alert">
-                        <i class="bi bi-exclamation-circle me-2"></i>Usuário ou senha inválidos. Tente novamente.
+                    <div th:if="${param.error}" class="alert alert-danger mb-4" role="alert">
+                        <i class="bi bi-exclamation-triangle me-2"></i>chave inválida — usuário ou senha incorretos.
                     </div>
 
                     <form th:action="@{/login}" method="post" class="login-form">
                         <div class="mb-3">
-                            <label for="username" class="form-label card-title-label">Usuário</label>
-                            <input type="text" id="username" name="username" class="form-control form-control-theme" placeholder="Usuário" required autofocus autocomplete="username">
+                            <label for="username" class="form-label card-title-label">// usuário</label>
+                            <input type="text" id="username" name="username" class="form-control form-control-theme" placeholder="operador" required autofocus autocomplete="username">
                         </div>
                         <div class="mb-4">
-                            <label for="password" class="form-label card-title-label">Senha</label>
-                            <input type="password" id="password" name="password" class="form-control form-control-theme" placeholder="Senha" required autocomplete="current-password">
+                            <label for="password" class="form-label card-title-label">// access_key</label>
+                            <input type="password" id="password" name="password" class="form-control form-control-theme" placeholder="••••••••" required autocomplete="current-password">
                         </div>
                         <button type="submit" class="btn btn-primary btn-theme w-100 py-2">
-                            <i class="bi bi-box-arrow-in-right me-2"></i>Entrar
+                            Entrar ▸
                         </button>
                     </form>
                 </div>
             </div>
+
+            <div class="text-center mt-4">
+                <a href="/" class="text-decoration-none" style="font-family: var(--font-mono); font-size: 12px; letter-spacing: 1px; color: var(--text-label);">
+                    ◂ voltar ao painel
+                </a>
+            </div>
         </div>
     </div>
 </div>
-
-<footer class="text-center text-muted small py-4 opacity-50">
-    <p>&copy; 2026 Server Dashboard</p>
-</footer>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>

@@ -1,5 +1,5 @@
 
-Chart.defaults.color = 'rgba(255,255,255,0.5)';
+Chart.defaults.color = 'rgba(233,233,225,0.5)';
 Chart.defaults.font.family = "'JetBrains Mono', ui-monospace, monospace";
 
 const commonOptions = {
@@ -8,10 +8,10 @@ const commonOptions = {
     plugins: {
         legend: { display: false },
         tooltip: {
-            backgroundColor: '#000000',
-            titleColor: '#ffffff',
-            bodyColor: 'rgba(255,255,255,0.6)',
-            borderColor: 'rgba(255,255,255,0.1)',
+            backgroundColor: '#0D0D10',
+            titleColor: '#F4F4EC',
+            bodyColor: 'rgba(233,233,225,0.7)',
+            borderColor: 'rgba(233,233,225,0.16)',
             borderWidth: 1,
             padding: 10,
             displayColors: false,
@@ -30,7 +30,7 @@ const commonOptions = {
         y: {
             beginAtZero: true,
             grid: {
-                color: 'rgba(255,255,255,0.08)',
+                color: 'rgba(233,233,225,0.08)',
                 drawBorder: false,
                 tickLength: 0
             },
@@ -59,7 +59,7 @@ function createGradient(ctx, colorHex) {
 }
 
 const ctxCpu = document.getElementById('cpuChart').getContext('2d');
-const cpuGradient = createGradient(ctxCpu, '#0089ff');
+const cpuGradient = createGradient(ctxCpu, '#00F0FF');
 
 const cpuChart = new Chart(ctxCpu, {
     type: 'line',
@@ -68,7 +68,7 @@ const cpuChart = new Chart(ctxCpu, {
         datasets: [{
             label: 'CPU',
             data: [],
-            borderColor: '#0089ff',
+            borderColor: '#00F0FF',
             backgroundColor: cpuGradient,
             fill: true
         }]
@@ -83,7 +83,7 @@ const cpuChart = new Chart(ctxCpu, {
 });
 
 const ctxRam = document.getElementById('ramChart').getContext('2d');
-const ramGradient = createGradient(ctxRam, '#0096ff');
+const ramGradient = createGradient(ctxRam, '#FCEE0A');
 
 const ramChart = new Chart(ctxRam, {
     type: 'line',
@@ -92,7 +92,7 @@ const ramChart = new Chart(ctxRam, {
         datasets: [{
             label: 'RAM',
             data: [],
-            borderColor: '#0096ff',
+            borderColor: '#FCEE0A',
             backgroundColor: ramGradient,
             fill: true
         }]
@@ -107,7 +107,7 @@ const ramChart = new Chart(ctxRam, {
 });
 
 const ctxTemp = document.getElementById('tempChart').getContext('2d');
-const tempGradient = createGradient(ctxTemp, '#48cae4');
+const tempGradient = createGradient(ctxTemp, '#FFB000');
 
 const tempChart = new Chart(ctxTemp, {
     type: 'line',
@@ -116,7 +116,7 @@ const tempChart = new Chart(ctxTemp, {
         datasets: [{
             label: 'Temp',
             data: [],
-            borderColor: '#48cae4',
+            borderColor: '#FFB000',
             backgroundColor: tempGradient,
             fill: true
         }]
