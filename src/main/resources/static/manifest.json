@@ -3,8 +3,8 @@
   "short_name": "ServerDash",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0f0f0f",
-  "theme_color": "#0f0f0f",
+  "background_color": "#08080A",
+  "theme_color": "#08080A",
   "icons": [
     {
       "src": "/icons/icon-192x192.png",

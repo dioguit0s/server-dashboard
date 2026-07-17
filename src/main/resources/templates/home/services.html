@@ -5,61 +5,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="_csrf" th:content="${_csrf.token}"/>
     <title>Status dos Serviços</title>
-
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <link rel="stylesheet" th:href="@{/home/styles/style.css}">
-
-    <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#0f0f0f">
+    <th:block th:replace="~{home/fragments/layout :: head-assets}"></th:block>
 </head>
 <body>
 
-<nav class="navbar navbar-expand-lg navbar-dark navbar-blur fixed-top">
-    <div class="container">
-        <a class="navbar-brand d-flex align-items-center gap-2" href="/">
-            <i class="bi bi-hdd-rack-fill brand-mark" aria-hidden="true"></i>
-            <span>Server<span class="text-white-50 fw-normal">Dash</span></span>
-        </a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbarCollapse"
-                aria-controls="mainNavbarCollapse" aria-expanded="false" aria-label="Alternar menu de navegação">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="mainNavbarCollapse">
-            <div class="navbar-nav ms-auto align-items-lg-center">
-                <a class="nav-link" href="/">Visão Geral</a>
-                <a class="nav-link" href="/charts">Histórico</a>
-                <span sec:authorize="isAuthenticated()"><a class="nav-link" href="/containers">Containers</a></span>
-                <span sec:authorize="isAuthenticated()"><a class="nav-link" href="/logs">Logs</a></span>
-                <span sec:authorize="isAuthenticated()"><a class="nav-link active" href="/services">Serviços</a></span>
-                <span sec:authorize="isAuthenticated()"><a class="nav-link" href="/processes">Processos</a></span>
-                <span sec:authorize="!isAuthenticated()"><a class="nav-link" th:href="@{/login}">Login</a></span>
-                <span sec:authorize="isAuthenticated()">
-                    <form th:action="@{/logout}" method="post" class="d-inline">
-                        <button type="submit" class="btn btn-link nav-link p-0 border-0 bg-transparent">Logout</button>
-                    </form>
-                </span>
+<th:block th:replace="~{home/fragments/layout :: bg-fx}"></th:block>
+
+<div class="app-shell">
+    <div th:replace="~{home/fragments/layout :: sidebar('services')}"></div>
+
+    <main class="app-main">
+        <div th:replace="~{home/fragments/layout :: topbar}"></div>
+
+        <span class="eyebrow">// serviços</span>
+        <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
+            <h1 class="page-heading m-0">Monitoramento de Serviços</h1>
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <span class="badge badge-signal">Tempo real</span>
+                <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addServiceModal">
+                    <i class="bi bi-plus-lg me-1"></i> Adicionar Serviço
+                </button>
             </div>
         </div>
-    </div>
-</nav>
 
-<div style="height: 100px;"></div>
-
-<div class="container pb-5">
-    <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
-        <h4 class="page-heading m-0">Monitoramento de Serviços</h4>
-        <div class="d-flex align-items-center gap-2 flex-wrap">
-            <span class="badge badge-signal">Status em Tempo Real</span>
-            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addServiceModal">
-                <i class="bi bi-plus-lg me-1"></i> Adicionar Serviço
-            </button>
+        <div class="row g-4" id="servicesGrid">
+            <div class="col-12 text-muted">Aguardando conexão...</div>
         </div>
-    </div>
-
-    <div class="row g-4" id="servicesGrid">
-        <div class="col-12 text-muted">Aguardando conexão...</div>
-    </div>
+    </main>
 </div>
 
 <!-- Modal Adicionar Serviço -->
@@ -67,7 +39,7 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title text-white" id="addServiceModalLabel">
+                <h5 class="modal-title" id="addServiceModalLabel">
                     <i class="bi bi-plus-circle me-2"></i>Novo Serviço
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
@@ -76,11 +48,11 @@
                 <div id="addServiceError" class="alert alert-danger d-none" role="alert"></div>
                 <form id="addServiceForm">
                     <div class="mb-3">
-                        <label for="serviceName" class="form-label card-title-label">Nome</label>
+                        <label for="serviceName" class="form-label card-title-label">// nome</label>
                         <input type="text" class="form-control form-control-theme" id="serviceName" placeholder="Ex: PostgreSQL" required maxlength="50">
                     </div>
                     <div class="mb-3">
-                        <label for="servicePort" class="form-label card-title-label">Porta</label>
+                        <label for="servicePort" class="form-label card-title-label">// porta</label>
                         <input type="number" class="form-control form-control-theme" id="servicePort" placeholder="Ex: 5432" min="1" max="65535" required>
                     </div>
                 </form>

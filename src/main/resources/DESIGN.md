@@ -1,307 +1,110 @@
-# Design System Inspiration of Composio
+# Nightwire UI — Cyberpunk Design System
 
-## 1. Visual Theme & Atmosphere
+Sistema visual techno-noir do Server Dashboard. Amarelo-voltagem e ciano neon sobre superfícies
+quase-pretas de CRT, formas angulares com `clip-path` (notch) no lugar de cantos arredondados, e uma
+espinha tipográfica monospace/terminal. Estética "high tech, low life" — um centro de comando de
+operador, não um app amigável.
 
-Composio's interface is a nocturnal command center — a dense, developer-focused darkness punctuated by electric cyan and deep cobalt signals. The entire experience is built on an almost-pure-black canvas (`#0f0f0f`) where content floats within barely-visible containment borders, creating the feeling of a high-tech control panel rather than a traditional marketing page. It's a site that whispers authority to developers who live in dark terminals.
+Os tokens vivem em [`static/home/styles/style.css`](static/home/styles/style.css) (`:root`) e são
+mapeados para as variáveis `--bs-*` do Bootstrap 5.3, que é re-tematizado (não substituído). O layout
+usa uma **sidebar lateral** compartilhada via fragment Thymeleaf
+([`templates/home/fragments/layout.html`](templates/home/fragments/layout.html)).
 
-The visual language leans heavily into the aesthetic of code editors and terminal windows. JetBrains Mono appears alongside the geometric precision of abcDiatype, reinforcing the message that this is a tool built *by* developers *for* developers. Decorative elements are restrained but impactful — subtle cyan-blue gradient glows emanate from cards and sections like bioluminescent organisms in deep water, while hard-offset shadows (`4px 4px`) on select elements add a raw, brutalist edge that prevents the design from feeling sterile.
+## 1. Cor
 
-What makes Composio distinctive is its tension between extreme minimalism and strategic bursts of luminous color. The site never shouts — headings use tight line-heights (0.87) that compress text into dense, authoritative blocks. Color is rationed like a rare resource: white text for primary content, semi-transparent white (`rgba(255,255,255,0.5-0.6)`) for secondary, and brand blue (`#0007cd`) or electric cyan (`#00ffff`) reserved exclusively for interactive moments and accent glows.
+Fundo quase-preto carregando três acentos neon, usados com parcimônia (a maior parte de qualquer tela
+é preto/cinza; o neon é reservado para acento, foco e status).
 
-**Key Characteristics:**
-- Pitch-black canvas with near-invisible white-border containment (4-12% opacity)
-- Dual-font identity: geometric sans-serif (abcDiatype) for content, monospace (JetBrains Mono) for technical credibility
-- Ultra-tight heading line-heights (0.87-1.0) creating compressed, impactful text blocks
-- Bioluminescent accent strategy — cyan and blue glows that feel like they're emitting light from within
-- Hard-offset brutalist shadows (`4px 4px`) on select interactive elements
-- Monochrome hierarchy with color used only at the highest-signal moments
-- Developer-terminal aesthetic that bridges marketing and documentation
+### Base
+- **Voltage** `#FCEE0A` — primário / CTA (amarelo Night City). `--cp-voltage`
+- **Jet** `#08080A` — fundo do app. `--cp-jet`
+- **Panel** `#0D0D10` (→ `#0A0A0D`) — superfície de card/painel (gradiente sutil). `--cp-panel`
+- **Cyan** `#00F0FF` — secundário / links / foco. `--cp-cyan`
+- **Magenta** `#FF2E88` — terciário / raro. `--cp-magenta`
 
-## 2. Color Palette & Roles
+### Semânticas (com sabor de gênero)
+- **Blood ICE** `#FF2A3C` — erro / destrutivo. `--cp-danger` (texto legível: `--cp-danger-fg #FF6B78`)
+- **Amber CRT** `#FFB000` — aviso. `--cp-amber`
+- **Terminal green** `#7CFF6B` — sucesso / online. `--cp-ok`
 
-### Primary
-- **Composio Cobalt** (`#0007cd`): The core brand color — a deep, saturated blue used sparingly for high-priority interactive elements and brand moments. It anchors the identity with quiet intensity.
+### Texto (bone → steel)
+- `#F4F4EC` headings (`--text-heading`) · `#E9E9E1` primeiro plano · `#A9A9A0` corpo (`--text-body`)
+- `#C9C9C0` corpo forte · `#8B8B80` labels (`--text-label`) · `#6f6f68` mais fraco (`--text-faint`)
 
-### Secondary & Accent
-- **Electric Cyan** (`#00ffff`): The attention-grabbing accent — used at low opacity (`rgba(0,255,255,0.12)`) for glowing button backgrounds and card highlights. At full saturation, it serves as the energetic counterpoint to the dark canvas.
-- **Signal Blue** (`#0089ff` / `rgb(0,137,255)`): Used for select button borders and interactive focus states, bridging the gap between Cobalt and Cyan.
-- **Ocean Blue** (`#0096ff` / `rgb(0,150,255)`): Accent border color on CTA buttons, slightly warmer than Signal Blue.
+### Bordas (hairline bone translúcido)
+- `rgba(233,233,225,0.12)` divisórias · `0.16` inputs · `0.3` outline forte. Foco troca para acento
+  sólido + `box-shadow` de 1px na mesma cor.
 
-### Surface & Background
-- **Void Black** (`#0f0f0f`): The primary page background — not pure black, but a hair warmer, reducing eye strain on dark displays.
-- **Pure Black** (`#000000`): Used for card interiors and deep-nested containers, creating a subtle depth distinction from the page background.
-- **Charcoal** (`#2c2c2c` / `rgb(44,44,44)`): Used for secondary button borders and divider lines on dark surfaces.
+## 2. Tipografia
 
-### Neutrals & Text
-- **Pure White** (`#ffffff`): Primary heading and high-emphasis text color on dark surfaces.
-- **Muted Smoke** (`#444444`): De-emphasized body text, metadata, and tertiary content.
-- **Ghost White** (`rgba(255,255,255,0.6)`): Secondary body text and link labels — visible but deliberately receded.
-- **Whisper White** (`rgba(255,255,255,0.5)`): Tertiary button text and placeholder content.
-- **Phantom White** (`rgba(255,255,255,0.2)`): Subtle button backgrounds and deeply receded UI chrome.
+Três famílias, cada uma com um papel. Carregadas via Google Fonts no topo do `style.css`.
 
-### Semantic & Accent
-- **Border Mist 12** (`rgba(255,255,255,0.12)`): Highest-opacity border treatment — used for prominent card edges and content separators.
-- **Border Mist 10** (`rgba(255,255,255,0.10)`): Standard container borders on dark surfaces.
-- **Border Mist 08** (`rgba(255,255,255,0.08)`): Subtle section dividers and secondary card edges.
-- **Border Mist 06** (`rgba(255,255,255,0.06)`): Near-invisible containment borders for background groupings.
-- **Border Mist 04** (`rgba(255,255,255,0.04)`): The faintest border — used for atmospheric separation only.
-- **Light Border** (`#e0e0e0` / `rgb(224,224,224)`): Reserved for light-surface contexts (rare on this site).
+- **Share Tech Mono** (`--font-display`) — headings, botões, labels de tab. **SEMPRE CAIXA ALTA**,
+  tracking apertado.
+- **Archivo** (`--font-body`, 400–800) — parágrafos e texto corrido. Única face proporcional; único
+  lugar onde múltiplos pesos aparecem. Caixa normal.
+- **JetBrains Mono** (`--font-mono`) — labels, microcopy, dados, saída de terminal, valores de métrica.
 
-### Gradient System
-- **Cyan Glow**: Radial gradients using `#00ffff` at very low opacity, creating bioluminescent halos behind cards and feature sections.
-- **Blue-to-Black Fade**: Linear gradients from Composio Cobalt (`#0007cd`) fading into Void Black (`#0f0f0f`), used in hero backgrounds and section transitions.
-- **White Fog**: Bottom-of-page gradient transitioning from dark to a diffused white/gray, creating an atmospheric "horizon line" effect near the footer.
+Eyebrows/labels são uppercase, pequenas e com `letter-spacing`. Corpo (Archivo) é o único ponto onde o
+sistema relaxa para caixa normal.
 
-## 3. Typography Rules
+## 3. Forma — o traço-assinatura
 
-### Font Family
-- **Primary**: `abcDiatype`, with fallbacks: `abcDiatype Fallback, ui-sans-serif, system-ui, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji`
-- **Monospace**: `JetBrains Mono`, with fallbacks: `JetBrains Mono Fallback, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New`
-- **System Monospace** (fallback): `Menlo`, `monospace` for smallest inline code
+`border-radius` é efetivamente **0** em todo lugar. Cards, painéis, sidebar, botões e badges são
+recortados com polígonos `clip-path` (um notch cortado num canto). É o traço mais identificável do
+sistema — prefira um notch a um raio. Variáveis: `--clip-notch-card`, `--clip-notch-button`,
+`--clip-notch-badge`, `--clip-notch-hud`, `--clip-notch-mark`.
 
-### Hierarchy
+Única exceção de raio: `--radius-pill 999px` para o raro pill verdadeiro (trilho de switch).
 
-| Role | Font | Size | Weight | Line Height | Letter Spacing | Notes |
-|------|------|------|--------|-------------|----------------|-------|
-| Display / Hero | abcDiatype | 64px (4rem) | 400 | 0.87 (ultra-tight) | normal | Massive, compressed headings |
-| Section Heading | abcDiatype | 48px (3rem) | 400 | 1.00 (tight) | normal | Major feature section titles |
-| Sub-heading Large | abcDiatype | 40px (2.5rem) | 400 | 1.00 (tight) | normal | Secondary section markers |
-| Sub-heading | abcDiatype | 28px (1.75rem) | 400 | 1.20 (tight) | normal | Card titles, feature names |
-| Card Title | abcDiatype | 24px (1.5rem) | 500 | 1.20 (tight) | normal | Medium-emphasis card headings |
-| Feature Label | abcDiatype | 20px (1.25rem) | 500 | 1.20 (tight) | normal | Smaller card titles, labels |
-| Body Large | abcDiatype | 18px (1.125rem) | 400 | 1.20 (tight) | normal | Intro paragraphs |
-| Body / Button | abcDiatype | 16px (1rem) | 400 | 1.50 | normal | Standard body text, nav links, buttons |
-| Body Small | abcDiatype | 15px (0.94rem) | 400 | 1.63 (relaxed) | normal | Longer-form body text |
-| Caption | abcDiatype | 14px (0.875rem) | 400 | 1.63 (relaxed) | normal | Descriptions, metadata |
-| Label | abcDiatype | 13px (0.81rem) | 500 | 1.50 | normal | UI labels, badges |
-| Tag / Overline | abcDiatype | 12px (0.75rem) | 500 | 1.00 (tight) | 0.3px | Uppercase overline labels |
-| Micro | abcDiatype | 12px (0.75rem) | 400 | 1.00 (tight) | 0.3px | Smallest sans-serif text |
-| Code Body | JetBrains Mono | 16px (1rem) | 400 | 1.50 | -0.32px | Inline code, terminal output |
-| Code Small | JetBrains Mono | 14px (0.875rem) | 400 | 1.50 | -0.28px | Code snippets, technical labels |
-| Code Caption | JetBrains Mono | 12px (0.75rem) | 400 | 1.50 | -0.28px | Small code references |
-| Code Overline | JetBrains Mono | 14px (0.875rem) | 400 | 1.43 | 0.7px | Uppercase technical labels |
-| Code Micro | JetBrains Mono | 11px (0.69rem) | 400 | 1.33 | 0.55px | Tiny uppercase code tags |
-| Code Nano | JetBrains Mono | 9-10px | 400 | 1.33 | 0.45-0.5px | Smallest monospace text |
+## 4. Espaço, sombra e textura
 
-### Principles
-- **Compression creates authority**: Heading line-heights are drastically tight (0.87-1.0), making large text feel dense and commanding rather than airy and decorative.
-- **Dual personality**: abcDiatype carries the marketing voice — geometric, precise, friendly. JetBrains Mono carries the technical voice — credible, functional, familiar to developers.
-- **Weight restraint**: Almost everything is weight 400 (regular). Weight 500 (medium) is reserved for small labels, badges, and select card titles. Weight 700 (bold) appears only in microscopic system-monospace contexts.
-- **Negative letter-spacing on code**: JetBrains Mono uses negative letter-spacing (-0.28px to -0.98px) for dense, compact code blocks that feel like a real IDE.
-- **Uppercase is earned**: The `uppercase` + `letter-spacing` treatment is reserved exclusively for tiny overline labels and technical tags — never for headings.
+- **Escala densa** de 4px (4/8/12/14/16/18/20/24/26/30/40/54) — HUD/terminal, controles próximos.
+- **Sem sombras de elevação** (sistema flat/matte). A única "sombra" é **glow**: `box-shadow` colorido
+  como emissão de luz (botões no hover, dots de status, inputs em foco), sempre na cor de acento do
+  próprio elemento. `--shadow-glow-accent/-cyan/-danger`.
+- **Sem backdrop-blur/glassmorphism.** Transparência é usada com precisão (fundos alpha tingidos
+  `rgba(accent, 0.05–0.15)` para alertas, badges, tracks ativos).
+- **Texturas CRT (sutis)** — camadas `.bg-fx` fixas atrás de tudo: `.bg-glow` (radial cyan/magenta
+  ~6%), `.bg-scan` (scanlines leves ~0.15) e `.bg-grain` (granulado ~3.5%). **Sem** glitch/flicker
+  animado no conteúdo — a prioridade é a legibilidade de um dashboard lido o dia todo.
 
-## 4. Component Stylings
+## 5. Componentes
 
-### Buttons
+- **Sidebar** (260px, sticky no desktop; offcanvas `<lg` no mobile): marca em notch amarelo, links
+  Share Tech Mono uppercase com atalho (F1–F9) alinhado à direita, linha ativa com **fill amarelo** +
+  borda esquerda. Rodapé com dot verde (OPERADOR / UPLINK). Ver `.app-sidebar`, `.sidebar-link`.
+- **Cards** (`.card-metric`): `--surface-card-gradient`, borda hairline, `--clip-notch-card`, sem
+  sombra. Valores grandes em Share Tech Mono (`.metric-value`).
+- **Botões**: primário = fundo voltage + texto jet + notch + hover `brightness(1.12)` e glow amarelo.
+  Outline (secundário) = borda ciano, fill tênue no hover. Sufixo `▸` no texto marca "executar".
+- **Badges/Tags** (`.badge-signal`, `.badge-service-*`): mono, notch, fill alpha do acento.
+- **Formulários**: input/select fundo panel, borda hairline, foco ciano com ring 1px. Labels são
+  eyebrows `// nome` (comment-style).
+- **Tabs** (`.nav-tabs`): sublinhado amarelo no ativo, sem caixa.
+- **Modais**: painel com notch, sem sombra difusa forte.
 
-**Primary CTA (White Fill)**
-- Background: Pure White (`#ffffff`)
-- Text: Near Black (`oklch(0.145 0 0)`)
-- Padding: comfortable (8px 24px)
-- Border: none
-- Radius: subtly rounded (likely 4px based on token scale)
-- Hover: likely subtle opacity reduction or slight gray shift
+## 6. Voz e conteúdo
 
-**Cyan Accent CTA**
-- Background: Electric Cyan at 12% opacity (`rgba(0,255,255,0.12)`)
-- Text: Near Black (`oklch(0.145 0 0)`)
-- Padding: comfortable (8px 24px)
-- Border: thin solid Ocean Blue (`1px solid rgb(0,150,255)`)
-- Radius: subtly rounded (4px)
-- Creates a "glowing from within" effect on dark backgrounds
+- **Idioma:** português para a chrome de UI, com termos de gênero em inglês quando cabe (terminal-flavor).
+- **Voz:** terse, imperativa, sabor de linha de comando. Botões leem como comandos (`Entrar ▸`).
+  Status lê como saída de sistema. Erro é direto e diegético ("chave inválida").
+- **Labels** prefixadas com `//` (comment-style): `// usuário`, `// access_key`, `// visão_geral`.
+- **Pontuação como UI:** `▸` executar/ir, `//` label/eyebrow, `▾/▴` download/upload. Sem emoji —
+  dingbats unicode fazem o papel de ícones quando um glifo basta. Bootstrap Icons segue em uso para
+  os ícones de UI existentes.
 
-**Ghost / Outline (Signal Blue)**
-- Background: transparent
-- Text: Near Black (`oklch(0.145 0 0)`)
-- Padding: balanced (10px)
-- Border: thin solid Signal Blue (`1px solid rgb(0,137,255)`)
-- Hover: likely fill or border color shift
+## 7. Do / Don't
 
-**Ghost / Outline (Charcoal)**
-- Background: transparent
-- Text: Near Black (`oklch(0.145 0 0)`)
-- Padding: balanced (10px)
-- Border: thin solid Charcoal (`1px solid rgb(44,44,44)`)
-- For secondary/tertiary actions on dark surfaces
+**Do:** usar Jet como fundo; reservar neon para acento/foco/status; notch em vez de raio; uppercase +
+Share Tech Mono em headings/botões; glow (não sombra cinza) para profundidade; manter o dashboard
+legível (FX sutis).
 
-**Phantom Button**
-- Background: Phantom White (`rgba(255,255,255,0.2)`)
-- Text: Whisper White (`rgba(255,255,255,0.5)`)
-- No visible border
-- Used for deeply de-emphasized actions
+**Don't:** superfícies claras; border-radius em cards; sombras difusas de elevação; glass/backdrop-blur;
+neon em grandes superfícies; glitch/flicker animado sobre dados; fontes serifadas/decorativas.
 
-### Cards & Containers
-- Background: Pure Black (`#000000`) or transparent
-- Border: white at very low opacity, ranging from Border Mist 04 (`rgba(255,255,255,0.04)`) to Border Mist 12 (`rgba(255,255,255,0.12)`) depending on prominence
-- Radius: barely rounded corners (2px for inline elements, 4px for content cards)
-- Shadow: select cards use the hard-offset brutalist shadow (`rgba(0,0,0,0.15) 4px 4px 0px 0px`) — a distinctive design choice that adds raw depth
-- Elevation shadow: deeper containers use soft diffuse shadow (`rgba(0,0,0,0.5) 0px 8px 32px`)
-- Hover behavior: likely subtle border opacity increase or faint glow effect
+---
 
-### Inputs & Forms
-- No explicit input token data extracted — inputs likely follow the dark-surface pattern with:
-  - Background: transparent or Pure Black
-  - Border: Border Mist 10 (`rgba(255,255,255,0.10)`)
-  - Focus: border shifts to Signal Blue (`#0089ff`) or Electric Cyan
-  - Text: Pure White with Ghost White placeholder
-
-### Navigation
-- Sticky top nav bar on dark/black background
-- Logo (white SVG): Composio wordmark on the left
-- Nav links: Pure White (`#ffffff`) at standard body size (16px, abcDiatype)
-- CTA button in the nav: White Fill Primary style
-- Mobile: collapses to hamburger menu, single-column layout
-- Subtle bottom border on nav (Border Mist 06-08)
-
-### Image Treatment
-- Dark-themed product screenshots and UI mockups dominate
-- Images sit within bordered containers matching the card system
-- Blue/cyan gradient glows behind or beneath feature images
-- No visible border-radius on images beyond container rounding (4px)
-- Full-bleed within their card containers
-
-### Distinctive Components
-
-**Stats/Metrics Display**
-- Large monospace numbers (JetBrains Mono) — "10k+" style
-- Tight layout with subtle label text beneath
-
-**Code Blocks / Terminal Previews**
-- Dark containers with JetBrains Mono
-- Syntax-highlighted content
-- Subtle bordered containers (Border Mist 10)
-
-**Integration/Partner Logos Grid**
-- Grid layout of tool logos on dark surface
-- Contained within bordered card
-- Demonstrates ecosystem breadth
-
-**"COMPOSIO" Brand Display**
-- Oversized brand typography — likely the largest text on the page
-- Used as a section divider/brand statement
-- Stark white on black
-
-## 5. Layout Principles
-
-### Spacing System
-- Base unit: 8px
-- Scale: 1px, 2px, 4px, 6px, 8px, 10px, 12px, 14px, 16px, 18px, 20px, 24px, 30px, 32px, 40px
-- Component padding: typically 10px (buttons) to 24px (CTA buttons horizontal)
-- Section padding: generous vertical spacing (estimated 80-120px between major sections)
-- Card internal padding: approximately 24-32px
-
-### Grid & Container
-- Max container width: approximately 1200px, centered
-- Content sections use single-column or 2-3 column grids for feature cards
-- Hero: centered single-column with maximum impact
-- Feature sections: asymmetric layouts mixing text blocks with product screenshots
-
-### Whitespace Philosophy
-- **Breathing room between sections**: Large vertical gaps create distinct "chapters" in the page scroll.
-- **Dense within components**: Cards and text blocks are internally compact (tight line-heights, minimal internal padding), creating focused information nodes.
-- **Contrast-driven separation**: Rather than relying solely on whitespace, Composio uses border opacity differences and subtle background shifts to delineate content zones.
-
-### Border Radius Scale
-- Nearly squared (2px): Inline code spans, small tags, pre blocks — the sharpest treatment, conveying technical precision
-- Subtly rounded (4px): Content cards, images, standard containers — the workhorse radius
-- Pill-shaped (37px): Select buttons and badges — creates a softer, more approachable feel for key CTAs
-- Full round (9999px+): Circular elements, avatar-like containers, decorative dots
-
-## 6. Depth & Elevation
-
-| Level | Treatment | Use |
-|-------|-----------|-----|
-| Flat (Level 0) | No shadow, no border | Page background, inline text |
-| Contained (Level 1) | Border Mist 04-08, no shadow | Background groupings, subtle sections |
-| Card (Level 2) | Border Mist 10-12, no shadow | Standard content cards, code blocks |
-| Brutalist (Level 3) | Hard offset shadow (`4px 4px`, 15% black) | Select interactive cards, distinctive feature highlights |
-| Floating (Level 4) | Soft diffuse shadow (`0px 8px 32px`, 50% black) | Modals, overlays, deeply elevated content |
-
-**Shadow Philosophy**: Composio uses shadows sparingly and with deliberate contrast. The hard-offset brutalist shadow is the signature — it breaks the sleek darkness with a raw, almost retro-computing feel. The soft diffuse shadow is reserved for truly floating elements. Most depth is communicated through border opacity gradations rather than shadows.
-
-### Decorative Depth
-- **Cyan Glow Halos**: Radial gradient halos using Electric Cyan at low opacity behind feature cards and images. Creates a "screen glow" effect as if the UI elements are emitting light.
-- **Blue-Black Gradient Washes**: Linear gradients from Composio Cobalt to Void Black used as section backgrounds, adding subtle color temperature shifts.
-- **White Fog Horizon**: A gradient from dark to diffused white/gray at the bottom of the page, creating an atmospheric "dawn" effect before the footer.
-
-## 7. Do's and Don'ts
-
-### Do
-- Use Void Black (`#0f0f0f`) as the primary page background — never pure white for main surfaces
-- Keep heading line-heights ultra-tight (0.87-1.0) for compressed, authoritative text blocks
-- Use white-opacity borders (4-12%) for containment — they're more important than shadows here
-- Reserve Electric Cyan (`#00ffff`) for high-signal moments only — CTAs, glows, interactive accents
-- Pair abcDiatype with JetBrains Mono to reinforce the developer-tool identity
-- Use the hard-offset shadow (`4px 4px`) intentionally on select elements for brutalist personality
-- Keep button text dark (`oklch(0.145 0 0)`) even on the darkest backgrounds — buttons carry their own surface
-- Layer opacity-based borders to create subtle depth without shadows
-- Use uppercase + letter-spacing only for tiny overline labels (12px or smaller)
-
-### Don't
-- Don't use bright backgrounds or light surfaces as primary containers
-- Don't apply heavy shadows everywhere — depth comes from border opacity, not box-shadow
-- Don't use Composio Cobalt (`#0007cd`) as a text color — it's too dark on dark and too saturated on light
-- Don't increase heading line-heights beyond 1.2 — the compressed feel is core to the identity
-- Don't use bold (700) weight for body or heading text — 400-500 is the ceiling
-- Don't mix warm colors — the palette is strictly cool (blue, cyan, white, black)
-- Don't use border-radius larger than 4px on content cards — the precision of near-square corners is intentional
-- Don't place Electric Cyan at full opacity on large surfaces — it's an accent, used at 12% max for backgrounds
-- Don't use decorative serif or handwritten fonts — the entire identity is geometric sans + monospace
-- Don't skip the monospace font for technical content — JetBrains Mono is not decorative, it's a credibility signal
-
-## 8. Responsive Behavior
-
-### Breakpoints
-| Name | Width | Key Changes |
-|------|-------|-------------|
-| Mobile | <768px | Single column, hamburger nav, full-width cards, reduced section padding, hero text scales down to ~28-40px |
-| Tablet | 768-1024px | 2-column grid for cards, condensed nav, slightly reduced hero text |
-| Desktop | 1024-1440px | Full multi-column layout, expanded nav with all links visible, large hero typography (64px) |
-| Large Desktop | >1440px | Max-width container centered, generous horizontal margins |
-
-### Touch Targets
-- Minimum touch target: 44x44px for all interactive elements
-- Buttons use comfortable padding (8px 24px minimum) ensuring adequate touch area
-- Nav links spaced with sufficient gap for thumb navigation
-
-### Collapsing Strategy
-- **Navigation**: Full horizontal nav on desktop collapses to hamburger on mobile
-- **Feature grids**: 3-column → 2-column → single-column stacking
-- **Hero text**: 64px → 40px → 28px progressive scaling
-- **Section padding**: Reduces proportionally but maintains generous vertical rhythm
-- **Cards**: Stack vertically on mobile with full-width treatment
-- **Code blocks**: Horizontal scroll on smaller viewports rather than wrapping
-
-### Image Behavior
-- Product screenshots scale proportionally within their containers
-- Dark-themed images maintain contrast on the dark background at all sizes
-- Gradient glow effects scale with container size
-- No visible art direction changes between breakpoints — same crops, proportional scaling
-
-## 9. Agent Prompt Guide
-
-### Quick Color Reference
-- Primary CTA: "Pure White (#ffffff)"
-- Page Background: "Void Black (#0f0f0f)"
-- Brand Accent: "Composio Cobalt (#0007cd)"
-- Glow Accent: "Electric Cyan (#00ffff)"
-- Heading Text: "Pure White (#ffffff)"
-- Body Text: "Ghost White (rgba(255,255,255,0.6))"
-- Card Border: "Border Mist 10 (rgba(255,255,255,0.10))"
-- Button Border: "Signal Blue (#0089ff)"
-
-### Example Component Prompts
-- "Create a feature card with a near-black background (#000000), barely visible white border at 10% opacity, subtly rounded corners (4px), and a hard-offset shadow (4px right, 4px down, 15% black). Use Pure White for the title in abcDiatype at 24px weight 500, and Ghost White (60% opacity) for the description at 16px."
-- "Design a primary CTA button with a solid white background, near-black text, comfortable padding (8px vertical, 24px horizontal), and subtly rounded corners. Place it next to a secondary button with transparent background, Signal Blue border, and matching padding."
-- "Build a hero section on Void Black (#0f0f0f) with a massive heading at 64px, line-height 0.87, in abcDiatype. Center the text. Add a subtle blue-to-black gradient glow behind the content. Include a white CTA button and a cyan-accented secondary button below."
-- "Create a code snippet display using JetBrains Mono at 14px with -0.28px letter-spacing on a black background. Add a Border Mist 10 border (rgba(255,255,255,0.10)) and 4px radius. Show syntax-highlighted content with white and cyan text."
-- "Design a navigation bar on Void Black with the Composio wordmark in white on the left, 4-5 nav links in white abcDiatype at 16px, and a white-fill CTA button on the right. Add a Border Mist 06 bottom border."
-
-### Iteration Guide
-When refining existing screens generated with this design system:
-1. Focus on ONE component at a time
-2. Reference specific color names and hex codes from this document — "use Ghost White (rgba(255,255,255,0.6))" not "make it lighter"
-3. Use natural language descriptions — "make the border barely visible" = Border Mist 04-06
-4. Describe the desired "feel" alongside specific measurements — "compressed and authoritative heading at 48px with line-height 1.0"
-5. For glow effects, specify "Electric Cyan at 12% opacity as a radial gradient behind the element"
-6. Always specify which font — abcDiatype for marketing, JetBrains Mono for technical/code content
+*Adaptado do design system "Nightwire UI — Cyberpunk" do projeto Claude Design "Atualizar design para
+cyberpunk". Os mockups de referência de cada tela (`Overview.dc.html`, `Login.dc.html`, etc.) vivem
+nesse projeto de design.*
