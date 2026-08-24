@@ -795,6 +795,12 @@ a.text-reset .card-metric:hover {
     .card-body { padding: 1.25rem !important; }
 }
 
+/* Cartão de logs: o notch percentual do card padrão vira uma faixa diagonal
+   enorme em cartões altos e corta as últimas linhas. Aqui o corte é fixo em px. */
+.card-logs {
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 18px), calc(100% - 18px) 100%, 0 100%);
+}
+
 .logs-output {
     max-height: 70vh;
     overflow-y: auto;
@@ -802,6 +808,7 @@ a.text-reset .card-metric:hover {
     word-break: break-word;
     font-family: var(--font-mono);
     color: var(--cp-ok) !important;
+    padding-bottom: 1.75rem !important;
 }
 
 /* ============================================================
