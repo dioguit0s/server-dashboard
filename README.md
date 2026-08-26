@@ -28,7 +28,7 @@ Acesso instantâneo às métricas vitais do servidor via **WebSockets (STOMP)** 
 ### 🛡️ Segurança e Administração
 Implementação de **Spring Security** para proteção de áreas sensíveis.
 * **Controle de Acesso:** Rotas administrativas protegidas (Login necessário).
-* **Autenticação:** Sistema de login customizado para administrador.
+* **Autenticação:** Sistema de login customizado para administrador, com a senha armazenada em hash BCrypt.
 * **Proteção contra brute-force:** Rate limiting no login — após N falhas o IP de origem é bloqueado por uma janela configurável, com uma trava global de reserva e registro em `WARN` para auditoria.
 * **Segregação:** Dados públicos (Dashboard) vs Dados sensíveis (Processos, Serviços e Containers).
 
@@ -78,11 +78,37 @@ Ferramentas exclusivas para o administrador logado:
     ```
 
 2.  **Configuração de Segurança:**
-    Crie um arquivo `.env` na raiz ou configure as variáveis de ambiente para definir a senha do admin:
+    Crie um arquivo `.env` na raiz ou configure as variáveis de ambiente com as credenciais do admin.
+    A forma recomendada é fornecer a senha **já em hash BCrypt**, para que ela não fique em texto
+    puro no ambiente do processo:
+    ```properties
+    DASHBOARD_ADMIN_USERNAME=admin
+    DASHBOARD_ADMIN_PASSWORD_HASH=$2a$10$....
+    ```
+
+    Para gerar o hash, use qualquer ferramenta BCrypt — por exemplo:
+    ```bash
+    # com apache2-utils (htpasswd)
+    htpasswd -bnBC 12 "" 'sua_senha_segura' | tr -d ':\n'
+
+    # ou com Python (pip install bcrypt)
+    python3 -c "import bcrypt; print(bcrypt.hashpw(b'sua_senha_segura', bcrypt.gensalt(12)).decode())"
+    ```
+
+    > O valor pode ser colado com ou sem o prefixo de algoritmo (`$2a$10$...` ou `{bcrypt}$2a$10$...`).
+    > No `.env`, cifrões não precisam de escape; em um shell, use aspas simples ao exportar a variável
+    > para o `$` não ser interpretado.
+
+    Alternativamente, a senha em texto puro continua funcionando (ela é convertida em hash na
+    inicialização), mas emite um `WARN` recomendando a migração:
     ```properties
     DASHBOARD_ADMIN_USERNAME=admin
     DASHBOARD_ADMIN_PASSWORD=sua_senha_segura
     ```
+
+    > ⚠️ Se nenhuma das duas variáveis estiver definida, a aplicação **não sobe** — em vez de subir
+    > com uma senha vazia. `DASHBOARD_ADMIN_PASSWORD_HASH` tem precedência sobre
+    > `DASHBOARD_ADMIN_PASSWORD` quando ambas estão presentes.
 
     Opcionalmente, ajuste o rate limiting do login (valores abaixo são os padrões):
     ```properties
