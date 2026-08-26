@@ -4,6 +4,7 @@
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.0-green?style=for-the-badge&logo=springboot)
 ![Spring Security](https://img.shields.io/badge/Spring_Security-6.0-6db33f?style=for-the-badge&logo=springsecurity)
 ![Status](https://img.shields.io/badge/Status-Active-brightgreen?style=for-the-badge)
+[![CI](https://github.com/dioguit0s/server-dashboard/actions/workflows/ci.yml/badge.svg)](https://github.com/dioguit0s/server-dashboard/actions/workflows/ci.yml)
 
 > **Uma solução completa de monitoramento de infraestrutura leve e em tempo real, projetada para servidores Linux com foco em segurança e usabilidade.**
 
@@ -28,6 +29,7 @@ Acesso instantâneo às métricas vitais do servidor via **WebSockets (STOMP)** 
 Implementação de **Spring Security** para proteção de áreas sensíveis.
 * **Controle de Acesso:** Rotas administrativas protegidas (Login necessário).
 * **Autenticação:** Sistema de login customizado para administrador.
+* **Proteção contra brute-force:** Rate limiting no login — após N falhas o IP de origem é bloqueado por uma janela configurável, com uma trava global de reserva e registro em `WARN` para auditoria.
 * **Segregação:** Dados públicos (Dashboard) vs Dados sensíveis (Processos, Serviços e Containers).
 
 ### ⚙️ Gestão Avançada (Área Restrita)
@@ -81,6 +83,23 @@ Ferramentas exclusivas para o administrador logado:
     DASHBOARD_ADMIN_USERNAME=admin
     DASHBOARD_ADMIN_PASSWORD=sua_senha_segura
     ```
+
+    Opcionalmente, ajuste o rate limiting do login (valores abaixo são os padrões):
+    ```properties
+    # Falhas do mesmo IP antes do bloqueio
+    DASHBOARD_LOGIN_MAX_ATTEMPTS=5
+    # Duração do bloqueio, em minutos
+    DASHBOARD_LOGIN_LOCKOUT_MINUTES=15
+    # Trava global: total de falhas de quaisquer IPs antes de travar o login inteiro (0 desativa)
+    DASHBOARD_LOGIN_GLOBAL_MAX_ATTEMPTS=25
+    # Teto de IPs rastreados em memória
+    DASHBOARD_LOGIN_MAX_TRACKED_IPS=10000
+    ```
+
+    > ⚠️ O IP de origem é lido respeitando `X-Forwarded-For` (`server.forward-headers-strategy=framework`).
+    > Se houver um reverse proxy na frente, configure-o para **sobrescrever** esse header em vez de anexá-lo —
+    > caso contrário um cliente pode forjar o IP e escapar do bloqueio. A trava global
+    > (`DASHBOARD_LOGIN_GLOBAL_MAX_ATTEMPTS`) existe justamente como rede de proteção para esse cenário.
 
 3.  **Execute a Aplicação:**
     O projeto utiliza Maven Wrapper:
