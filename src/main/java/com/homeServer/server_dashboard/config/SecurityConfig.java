@@ -8,6 +8,10 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.factory.PasswordEncoderFactories;
+import org.springframework.security.crypto.password.DelegatingPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -15,6 +19,7 @@ import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.thymeleaf.extras.springsecurity6.dialect.SpringSecurityDialect;
 
+import com.homeServer.server_dashboard.security.AdminCredentials;
 import com.homeServer.server_dashboard.security.LoginAttemptFilter;
 
 @Configuration
@@ -24,8 +29,11 @@ public class SecurityConfig {
     @Value("${dashboard.admin.username}")
     private String adminUsername;
 
-    @Value("${dashboard.admin.password}")
+    @Value("${dashboard.admin.password:}")
     private String adminPassword;
+
+    @Value("${dashboard.admin.password-hash:}")
+    private String adminPasswordHash;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, LoginAttemptFilter loginAttemptFilter) throws Exception {
@@ -66,12 +74,31 @@ public class SecurityConfig {
         return registration;
     }
 
+    /**
+     * {@link DelegatingPasswordEncoder} para que o hash armazenado carregue o proprio algoritmo
+     * ({@code {bcrypt}$2a$...}) e possa ser trocado no futuro sem mudar codigo. O encoder padrao
+     * para {@code matches()} e' BCrypt, cobrindo hashes gerados por ferramentas externas, que vem
+     * sem o prefixo.
+     */
     @Bean
-    public UserDetailsService userDetailsService() {
+    public PasswordEncoder passwordEncoder() {
+        DelegatingPasswordEncoder passwordEncoder =
+            (DelegatingPasswordEncoder) PasswordEncoderFactories.createDelegatingPasswordEncoder();
+        passwordEncoder.setDefaultPasswordEncoderForMatches(new BCryptPasswordEncoder());
+        return passwordEncoder;
+    }
+
+    @Bean
+    public AdminCredentials adminCredentials(PasswordEncoder passwordEncoder) {
+        return new AdminCredentials(adminUsername, adminPassword, adminPasswordHash, passwordEncoder);
+    }
+
+    @Bean
+    public UserDetailsService userDetailsService(AdminCredentials adminCredentials) {
         return new InMemoryUserDetailsManager(
             User.builder()
-                .username(adminUsername)
-                .password("{noop}" + adminPassword)
+                .username(adminCredentials.username())
+                .password(adminCredentials.encodedPassword())
                 .roles("ADMIN")
                 .build()
         );
