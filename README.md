@@ -4,6 +4,7 @@
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.0-green?style=for-the-badge&logo=springboot)
 ![Spring Security](https://img.shields.io/badge/Spring_Security-6.0-6db33f?style=for-the-badge&logo=springsecurity)
 ![Status](https://img.shields.io/badge/Status-Active-brightgreen?style=for-the-badge)
+[![CI](https://github.com/dioguit0s/server-dashboard/actions/workflows/ci.yml/badge.svg)](https://github.com/dioguit0s/server-dashboard/actions/workflows/ci.yml)
 
 > **Uma solução completa de monitoramento de infraestrutura leve e em tempo real, projetada para servidores Linux com foco em segurança e usabilidade.**
 
