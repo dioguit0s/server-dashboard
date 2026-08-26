@@ -94,7 +94,6 @@ Ferramentas exclusivas para o administrador logado:
     * **Containers:** `http://localhost:8080/containers` (após login)
     * **Logs de container:** `http://localhost:8080/logs?container=<ID>` (após login)
 
-- [ ] **Controle de processos:** Possibilidade de encerrar processos diretamente pelo painel de processos.
 - [x] **Painel de controle de Containers:** CPU/RAM por container, Start/Stop/Restart e visualizador de logs.
 - [ ] **Teste de Ping/Latencia:** Realizar um teste de ping no ip digitado pelo usuario no dashboard
 
