@@ -3,6 +3,7 @@ package com.homeServer.server_dashboard.controller;
 import com.homeServer.server_dashboard.service.DockerService;
 import com.homeServer.server_dashboard.service.DockerService.DockerContainerInformation;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -27,6 +28,12 @@ public class DockerApiController {
         return ResponseEntity.ok(Map.of("containers", dockerService.retrieveAllContainers()));
     }
 
+    /**
+     * Acao de escrita sobre o servidor: parar ou reiniciar um container derruba servico. Fica
+     * restrita a ADMIN aqui tambem, e nao so' na matriz de rotas, para que uma mudanca de mapeamento
+     * no futuro nao abra o endpoint sem que ninguem perceba.
+     */
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/{actionName}/{containerIdentifier}")
     public ResponseEntity<?> handleContainerAction(@PathVariable String actionName, @PathVariable String containerIdentifier) {
         if (!actionName.equals("start") && !actionName.equals("stop") && !actionName.equals("restart")) {

@@ -24,8 +24,10 @@ function renderServices(services) {
             '<div class="d-flex align-items-center gap-2 flex-shrink-0">' +
             '<span class="badge ' + badgeClass + '">' +
             '<i class="bi bi-' + iconClass + ' me-1" aria-hidden="true"></i> ' + statusText + '</span>' +
-            '<button type="button" class="btn btn-outline-danger btn-sm p-2 btn-remove-service" data-port="' + service.port + '" data-name="' + escapeHtml(service.name) + '" title="Remover serviço">' +
-            '<i class="bi bi-trash" aria-hidden="true"></i></button>' +
+            (canWrite()
+                ? '<button type="button" class="btn btn-outline-danger btn-sm p-2 btn-remove-service" data-port="' + service.port + '" data-name="' + escapeHtml(service.name) + '" title="Remover serviço">' +
+                  '<i class="bi bi-trash" aria-hidden="true"></i></button>'
+                : '') +
             '</div>' +
             '</div></div></div>';
         container.insertAdjacentHTML('beforeend', html);

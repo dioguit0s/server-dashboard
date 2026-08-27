@@ -4,6 +4,7 @@ import com.homeServer.server_dashboard.service.MonitoredServicesService;
 import com.homeServer.server_dashboard.service.MonitoredServicesService.MonitoredService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,6 +22,7 @@ public class ServicesApiController {
         return monitoredServicesService.getAll();
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<?> add(@RequestBody Map<String, Object> body) {
         String name = body != null && body.get("name") != null ? body.get("name").toString().trim() : "";
@@ -42,6 +44,7 @@ public class ServicesApiController {
         }
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{port}")
     public ResponseEntity<?> remove(@PathVariable int port) {
         if (port < 1 || port > 65535) {

@@ -27,13 +27,28 @@ Acesso instantâneo às métricas vitais do servidor via **WebSockets (STOMP)** 
 
 ### 🛡️ Segurança e Administração
 Implementação de **Spring Security** para proteção de áreas sensíveis.
-* **Controle de Acesso:** Rotas administrativas protegidas (Login necessário).
-* **Autenticação:** Sistema de login customizado para administrador, com a senha armazenada em hash BCrypt.
-* **Proteção contra brute-force:** Rate limiting no login — após N falhas o IP de origem é bloqueado por uma janela configurável, com uma trava global de reserva e registro em `WARN` para auditoria.
+* **Múltiplos usuários:** contas persistidas no H2, com senha em hash BCrypt. O admin inicial
+  continua vindo das variáveis de ambiente.
+* **Papéis (roles):**
+    * **`VIEWER`** — lê métricas, containers, logs, processos e a lista de serviços.
+    * **`ADMIN`** — acrescenta as ações de escrita (start/stop/restart de container, edição de
+      serviços) e a gestão de usuários.
+* **2FA (TOTP):** verificação em duas etapas opcional por conta, compatível com Google
+  Authenticator, Aegis, 1Password e afins, com QR code gerado pelo próprio servidor e 10 códigos de
+  recuperação de uso único. Pode ser tornado obrigatório para todo `ADMIN`.
+* **Proteção contra brute-force:** Rate limiting no login — após N falhas o IP de origem é bloqueado por uma janela configurável, com uma trava global de reserva e registro em `WARN` para auditoria. Vale para os dois passos do login (senha e segundo fator).
 * **Segregação:** Dados públicos (Dashboard) vs Dados sensíveis (Processos, Serviços e Containers).
 
 ### ⚙️ Gestão Avançada (Área Restrita)
-Ferramentas exclusivas para o administrador logado:
+Ferramentas da área logada:
+* **Gestão de Usuários** (`/admin/users`, só `ADMIN`):
+    * Criar contas, alternar entre `VIEWER` e `ADMIN`, habilitar/desabilitar e remover.
+    * Redefinir a senha de outro usuário e desligar o 2FA de quem perdeu o autenticador.
+    * Travas contra se trancar para fora: ninguém remove ou desabilita a própria conta, nem remove,
+      rebaixa ou desabilita o **último administrador ativo**.
+* **Minha Conta** (`/account`): trocar a própria senha e gerenciar o 2FA (ativar via QR code,
+  reemitir códigos de recuperação, desativar).
+
 * **Top Processos:** Visualização em tempo real dos processos que mais consomem recursos, com ordenação dinâmica por **CPU** ou **RAM**.
 * **Monitoramento de Serviços Dinâmico:**
     * Adicione ou remova portas TCP para monitoramento (Health Check) diretamente pela interface.
@@ -52,7 +67,9 @@ Ferramentas exclusivas para o administrador logado:
 * **Java 25:** Utilizando os recursos mais modernos da linguagem.
 * **Spring Boot 4.0.2:** Framework core para injeção de dependência e servidor web.
 * **Spring WebSocket:** Para comunicação duplex em tempo real.
-* **Spring Security:** Para segregação de informações publicas e apenas para administradores.
+* **Spring Security:** Autenticação, papéis (`VIEWER`/`ADMIN`) e segregação entre informações públicas e restritas.
+* **Spring Data JPA + H2:** Persistência das métricas históricas e dos usuários do dashboard.
+* **TOTP (RFC 6238) + ZXing:** Verificação em duas etapas implementada no projeto, com o QR code do enrollment gerado no servidor.
 * **OSHI (Operating System and Hardware Information):** Biblioteca para coleta de métricas de baixo nível.
 
 **Frontend**
@@ -110,6 +127,26 @@ Ferramentas exclusivas para o administrador logado:
     > com uma senha vazia. `DASHBOARD_ADMIN_PASSWORD_HASH` tem precedência sobre
     > `DASHBOARD_ADMIN_PASSWORD` quando ambas estão presentes.
 
+    > 🧑‍🤝‍🧑 Essas variáveis provisionam o **admin inicial**: no primeiro boot ele é criado no banco
+    > com o papel `ADMIN`. A partir daí o banco é a verdade — uma senha trocada em `/account` ou os
+    > usuários criados em `/admin/users` **não** são sobrescritos por um restart. A variável continua
+    > sendo lida a cada boot (e a aplicação continua exigindo que ela exista), mas só cria a conta
+    > quando ela ainda não existe.
+
+    **Verificação em duas etapas (opcional):**
+    Cada usuário ativa o próprio 2FA em `/account`. Para exigir 2FA de todos os administradores:
+    ```properties
+    DASHBOARD_TOTP_REQUIRE_ADMIN=true
+    ```
+
+    > ⚠️ Ligue isso **depois** de o admin ter concluído o enrollment. Com a exigência ativa, um
+    > `ADMIN` sem 2FA só consegue chegar à tela da própria conta — e as ações de escrita via API
+    > respondem `403` até ele ativar. Se ninguém puder escanear o QR no momento, o dashboard fica
+    > inutilizável até que a variável seja desligada.
+
+    > Se um usuário perder o autenticador, outro admin desliga o 2FA dele em `/admin/users`; se for
+    > o próprio (e único) admin, os códigos de recuperação são a saída — por isso vale guardá-los.
+
     Opcionalmente, ajuste o rate limiting do login (valores abaixo são os padrões):
     ```properties
     # Falhas do mesmo IP antes do bloqueio
@@ -162,8 +199,11 @@ Ferramentas exclusivas para o administrador logado:
     * **Área Admin:** Clique em "Login" e use as credenciais configuradas.
     * **Containers:** `http://localhost:8080/containers` (após login)
     * **Logs de container:** `http://localhost:8080/logs?container=<ID>` (após login)
+    * **Minha conta / 2FA:** `http://localhost:8080/account` (após login)
+    * **Usuários:** `http://localhost:8080/admin/users` (após login, só `ADMIN`)
 
 - [x] **Painel de controle de Containers:** CPU/RAM por container, Start/Stop/Restart e visualizador de logs.
+- [x] **Múltiplos usuários, papéis e 2FA:** contas no banco, separação entre leitura (`VIEWER`) e escrita (`ADMIN`) e verificação em duas etapas por TOTP.
 - [ ] **Teste de Ping/Latencia:** Realizar um teste de ping no ip digitado pelo usuario no dashboard
 
 ---
