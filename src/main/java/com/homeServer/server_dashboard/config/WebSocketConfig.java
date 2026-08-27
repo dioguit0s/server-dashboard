@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.core.env.Environment;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -21,6 +22,8 @@ import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 import org.springframework.web.socket.server.support.HttpSessionHandshakeInterceptor;
 
+import com.homeServer.server_dashboard.security.WebSocketAllowedOrigins;
+
 import java.util.Arrays;
 
 @Configuration
@@ -29,8 +32,17 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     private static final Logger log = LoggerFactory.getLogger(WebSocketConfig.class);
 
-    @Value("${dashboard.websocket.allowed-origin-patterns:*}")
-    private String allowedOriginPatterns;
+    private final WebSocketAllowedOrigins allowedOrigins;
+
+    public WebSocketConfig(
+            @Value("${dashboard.websocket.allowed-origin-patterns:*}") String allowedOriginPatterns,
+            @Value("${dashboard.websocket.allow-wildcard-origins:false}") boolean allowWildcardOrigins,
+            Environment environment) {
+        // No construtor para que um curinga em producao derrube a inicializacao do contexto, e nao
+        // apenas registre um aviso que ninguem le.
+        this.allowedOrigins = new WebSocketAllowedOrigins(
+                allowedOriginPatterns, Arrays.asList(environment.getActiveProfiles()), allowWildcardOrigins);
+    }
 
     @Override
     public void configureClientInboundChannel(org.springframework.messaging.simp.config.ChannelRegistration registration) {
@@ -76,15 +88,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        String[] patterns = Arrays.stream(allowedOriginPatterns.split(","))
-                .map(String::trim)
-                .filter(s -> !s.isEmpty())
-                .toArray(String[]::new);
-        if (patterns.length == 0) {
-            patterns = new String[]{"*"};
-        }
         registry.addEndpoint("/ws")
-                .setAllowedOriginPatterns(patterns)
+                .setAllowedOriginPatterns(allowedOrigins.patterns())
                 .addInterceptors(new HttpSessionHandshakeInterceptor())
                 .withSockJS();
     }

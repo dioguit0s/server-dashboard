@@ -127,9 +127,33 @@ Ferramentas exclusivas para o administrador logado:
     > caso contrário um cliente pode forjar o IP e escapar do bloqueio. A trava global
     > (`DASHBOARD_LOGIN_GLOBAL_MAX_ATTEMPTS`) existe justamente como rede de proteção para esse cenário.
 
+    **Origens do WebSocket (obrigatório fora de desenvolvimento):**
+    O handshake SockJS/STOMP é liberado por origem. O padrão de fábrica é o curinga `*`, e com ele
+    qualquer página aberta em outra aba por um admin autenticado consegue abrir a conexão com o
+    cookie de sessão dele e ler os tópicos protegidos (containers, processos, serviços). Por isso a
+    aplicação **não sobe** com o curinga fora de um perfil de desenvolvimento — liste as origens
+    pelas quais o dashboard é acessado:
+    ```properties
+    # produção: as origens reais do dashboard, separadas por vírgula
+    DASHBOARD_WS_ORIGINS=https://meudominio.com
+    ```
+
+    > Padrões de subdomínio (`https://*.meudominio.com`) e porta (`http://localhost:*`) continuam
+    > valendo — o que é recusado é o curinga de host (`*`, `http://*`, `https://*`, `*://*`).
+
+    Em desenvolvimento, use o perfil `dev` (passo 3), que já limita as origens ao `localhost`.
+
+    > Se a instância estiver em uma LAN fechada e o curinga for aceitável, é possível assumir o
+    > risco explicitamente com `DASHBOARD_WS_ALLOW_WILDCARD=true` — a inicialização passa a emitir
+    > um `WARN` em vez de falhar.
+
 3.  **Execute a Aplicação:**
     O projeto utiliza Maven Wrapper:
     ```bash
+    # desenvolvimento (origens do WebSocket limitadas ao localhost)
+    ./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
+
+    # produção (com DASHBOARD_WS_ORIGINS configurado)
     ./mvnw spring-boot:run
     ```
 
