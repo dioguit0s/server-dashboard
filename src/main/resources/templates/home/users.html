@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <title>Usuários</title>
+    <th:block th:replace="~{home/fragments/layout :: head-assets}"></th:block>
+</head>
+<body>
+
+<th:block th:replace="~{home/fragments/layout :: bg-fx}"></th:block>
+
+<div class="app-shell">
+    <div th:replace="~{home/fragments/layout :: sidebar('users')}"></div>
+
+    <main class="app-main">
+        <div th:replace="~{home/fragments/layout :: topbar}"></div>
+
+        <span class="eyebrow">// usuários</span>
+        <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
+            <h1 class="page-heading m-0">Gestão de Usuários</h1>
+            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addUserModal">
+                <i class="bi bi-person-plus me-1"></i> Novo usuário
+            </button>
+        </div>
+
+        <div id="usersFeedback" class="alert d-none" role="alert"></div>
+
+        <div class="card card-metric">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover align-middle m-0">
+                        <thead>
+                        <tr>
+                            <th scope="col">Usuário</th>
+                            <th scope="col">Papéis</th>
+                            <th scope="col">Estado</th>
+                            <th scope="col">2FA</th>
+                            <th scope="col" class="text-end">Ações</th>
+                        </tr>
+                        </thead>
+                        <tbody id="usersTableBody">
+                        <tr><td colspan="5" class="text-muted">Carregando...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <p class="text-muted mt-3" style="font-size: 12px;">
+            <strong>VIEWER</strong> lê métricas, containers, logs, processos e serviços.
+            <strong>ADMIN</strong> acrescenta as ações de escrita (start/stop/restart de containers,
+            edição de serviços) e esta tela.
+        </p>
+    </main>
+</div>
+
+<!-- Modal: novo usuário -->
+<div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addUserModalLabel">
+                    <i class="bi bi-person-plus me-2"></i>Novo Usuário
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <div class="modal-body">
+                <div id="addUserError" class="alert alert-danger d-none" role="alert"></div>
+                <form id="addUserForm" autocomplete="off">
+                    <div class="mb-3">
+                        <label for="newUsername" class="form-label card-title-label">// usuário</label>
+                        <input type="text" class="form-control form-control-theme" id="newUsername"
+                               placeholder="Ex: operador" required minlength="3" maxlength="64">
+                    </div>
+                    <div class="mb-3">
+                        <label for="newUserPassword" class="form-label card-title-label">// senha inicial</label>
+                        <input type="password" class="form-control form-control-theme" id="newUserPassword"
+                               required minlength="8" autocomplete="new-password">
+                    </div>
+                    <div class="mb-1">
+                        <span class="card-title-label">// papéis</span>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="newUserRoleViewer" value="VIEWER" checked>
+                        <label class="form-check-label" for="newUserRoleViewer">VIEWER — somente leitura</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="newUserRoleAdmin" value="ADMIN">
+                        <label class="form-check-label" for="newUserRoleAdmin">ADMIN — leitura e escrita</label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="addUserBtn">
+                    <i class="bi bi-check-lg me-1"></i> Criar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/home/js/csrf-utils.js}"></script>
+<script th:src="@{/home/js/users.js}"></script>
+
+</body>
+</html>

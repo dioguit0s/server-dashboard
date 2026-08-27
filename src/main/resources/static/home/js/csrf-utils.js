@@ -29,3 +29,14 @@ function fetchWithCsrf(url, options) {
     }
     return fetch(url, options);
 }
+
+/**
+ * Indica se o usuário logado tem permissão de escrita (ROLE_ADMIN). O servidor emite a meta
+ * `_can_write` apenas para admins — ver o fragmento `head-assets`.
+ *
+ * Serve só para não exibir controles que resultariam em 403: a autorização real acontece no
+ * servidor, nas regras de rota e nos @PreAuthorize.
+ */
+function canWrite() {
+    return document.querySelector('meta[name="_can_write"]') !== null;
+}

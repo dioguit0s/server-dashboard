@@ -22,7 +22,8 @@
             <h1 class="page-heading m-0">Monitoramento de Serviços</h1>
             <div class="d-flex align-items-center gap-2 flex-wrap">
                 <span class="badge badge-signal">Tempo real</span>
-                <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addServiceModal">
+                <button type="button" class="btn btn-primary btn-sm" sec:authorize="hasRole('ADMIN')"
+                        data-bs-toggle="modal" data-bs-target="#addServiceModal">
                     <i class="bi bi-plus-lg me-1"></i> Adicionar Serviço
                 </button>
             </div>

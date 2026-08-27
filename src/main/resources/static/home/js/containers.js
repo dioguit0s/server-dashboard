@@ -189,11 +189,12 @@ function renderDockerContainers() {
         logsLink.appendChild(logsIcon);
         tdActions.appendChild(logsLink);
 
-        var actionConfigs = [
+        // VIEWER acompanha os containers mas nao os controla: sem ADMIN, a coluna fica so' com os logs.
+        var actionConfigs = canWrite() ? [
             { action: 'start', btnClass: 'btn-outline-success', icon: 'bi-play-fill', title: 'Iniciar' },
             { action: 'restart', btnClass: 'btn-outline-warning', icon: 'bi-arrow-clockwise', title: 'Reiniciar' },
             { action: 'stop', btnClass: 'btn-outline-danger', icon: 'bi-stop-fill', title: 'Parar' }
-        ];
+        ] : [];
         actionConfigs.forEach(function(config) {
             var btn = document.createElement('button');
             btn.type = 'button';
