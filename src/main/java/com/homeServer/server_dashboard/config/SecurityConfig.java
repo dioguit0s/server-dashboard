@@ -78,6 +78,11 @@ public class SecurityConfig {
             .logout(logout -> logout
                 .logoutSuccessUrl("/")
             )
+            // withHttpOnlyFalse() e' intencional, nao um descuido: csrf-utils.js le o cookie
+            // XSRF-TOKEN via JS para mandar o header em cada fetch. Trocar para HttpOnly=true
+            // quebra esse fluxo. O trade-off (um XSS na aplicacao passaria a conseguir ler o
+            // token) esta documentado no README; a mitigacao e' a disciplina de escape do
+            // frontend, nao o HttpOnly do cookie CSRF.
             .csrf(csrf -> csrf
                 .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                 .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler())
