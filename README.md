@@ -38,6 +38,18 @@ Implementação de **Spring Security** para proteção de áreas sensíveis.
   recuperação de uso único. Pode ser tornado obrigatório para todo `ADMIN`.
 * **Proteção contra brute-force:** Rate limiting no login — após N falhas o IP de origem é bloqueado por uma janela configurável, com uma trava global de reserva e registro em `WARN` para auditoria. Vale para os dois passos do login (senha e segundo fator).
 * **Segregação:** Dados públicos (Dashboard) vs Dados sensíveis (Processos, Serviços e Containers).
+* **Cookie CSRF legível por JS (trade-off intencional):** o token CSRF é gravado com
+  `CookieCsrfTokenRepository.withHttpOnlyFalse()`
+  (`SecurityConfig.java`), ou seja, o cookie `XSRF-TOKEN` **não** é `HttpOnly`. Isso é o padrão do
+  Spring Security para SPAs e páginas que chamam a API via `fetch`, e é necessário para que
+  `csrf-utils.js` leia o token e o envie no header `X-XSRF-TOKEN`. A proteção CSRF em si continua
+  funcionando: a *same-origin policy* impede que uma origem externa leia esse cookie. O trade-off
+  real é outro — com `HttpOnly=false`, um **XSS** bem-sucedido na aplicação passaria a conseguir
+  ler o token e forjar requisições autenticadas, ou seja, a proteção CSRF deixa de ser uma segunda
+  barreira nesse cenário. Por isso a mitigação que sustenta essa configuração é **prevenir XSS**:
+  os dados dinâmicos são escapados (`escapeHtml`/`textContent`) antes de irem para o DOM em
+  `containers.js`, `logs.js`, `processes.js` e `services.js`. Como reforço adicional, vale avaliar
+  no futuro `SameSite=Strict` no cookie de sessão (hoje sem configuração explícita de `SameSite`).
 
 ### ⚙️ Gestão Avançada (Área Restrita)
 Ferramentas da área logada:
