@@ -1,5 +1,6 @@
 package com.homeServer.server_dashboard.security;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -47,6 +48,7 @@ class TwoFactorLoginIntegrationTest {
 
     private static final String USERNAME = "operador.2fa";
     private static final String PASSWORD = "senha-do-operador";
+    private static final String REMEMBER_ME_COOKIE = "remember-me";
 
     @Autowired
     private MockMvc mockMvc;
@@ -207,6 +209,61 @@ class TwoFactorLoginIntegrationTest {
         mockMvc.perform(post("/login").param("username", "admin").param("password", "test-password").with(csrf()))
                 .andExpect(redirectedUrl("/"))
                 .andExpect(authenticated().withUsername("admin"));
+    }
+
+    // --- "Lembrar de mim" ---------------------------------------------------
+
+    @Test
+    void rememberMeCookieIsNotSetWithoutTheCheckbox() throws Exception {
+        var result = mockMvc.perform(post("/login")
+                        .param("username", "admin").param("password", "test-password").with(csrf()))
+                .andExpect(redirectedUrl("/"))
+                .andReturn();
+
+        assertThat(result.getResponse().getCookie(REMEMBER_ME_COOKIE)).isNull();
+    }
+
+    @Test
+    void rememberMeCookieIsSetWhenTheCheckboxIsChecked() throws Exception {
+        var result = mockMvc.perform(post("/login")
+                        .param("username", "admin").param("password", "test-password")
+                        .param("remember-me", "on").with(csrf()))
+                .andExpect(redirectedUrl("/"))
+                .andReturn();
+
+        assertThat(result.getResponse().getCookie(REMEMBER_ME_COOKIE)).isNotNull();
+    }
+
+    /**
+     * O cookie so' pode nascer depois que o segundo fator for aceito — nunca so' com a senha, senao
+     * o 2FA perderia o sentido em qualquer acesso futuro pelo cookie.
+     */
+    @Test
+    void rememberMeCookieIsOnlySetAfterTheSecondFactorSucceeds() throws Exception {
+        var passwordResult = mockMvc.perform(post("/login")
+                        .param("username", USERNAME).param("password", PASSWORD)
+                        .param("remember-me", "on").with(csrf()))
+                .andExpect(redirectedUrl("/login/2fa"))
+                .andReturn();
+
+        // Uma senha certa que leva ao segundo fator conta como falha de autenticacao para o Spring
+        // Security (nenhum Authentication completo foi produzido), entao o RememberMeServices reage
+        // como reage a qualquer login mal-sucedido: cancela um eventual cookie antigo do navegador
+        // (valor vazio, expira na hora) — nao emite um token de verdade.
+        assertThat(hasNoActiveRememberMeToken(passwordResult.getResponse())).isTrue();
+
+        MockHttpSession session = (MockHttpSession) passwordResult.getRequest().getSession(false);
+        var secondFactorResult = mockMvc.perform(post("/login/2fa")
+                        .session(session).param("code", currentCode()).with(csrf()))
+                .andExpect(redirectedUrl("/"))
+                .andReturn();
+
+        assertThat(hasNoActiveRememberMeToken(secondFactorResult.getResponse())).isFalse();
+    }
+
+    private static boolean hasNoActiveRememberMeToken(org.springframework.mock.web.MockHttpServletResponse response) {
+        var cookie = response.getCookie(REMEMBER_ME_COOKIE);
+        return cookie == null || cookie.getValue() == null || cookie.getValue().isEmpty();
     }
 
     /**

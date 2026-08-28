@@ -11,8 +11,8 @@ import java.time.Instant;
  * Vale por {@link #VALIDITY} e esta presa ao IP de origem, para que a sessao meio-autenticada nao
  * seja util a mais ninguem.
  */
-public record PendingTwoFactorAuthentication(String username, String remoteAddress, Instant createdAt)
-        implements Serializable {
+public record PendingTwoFactorAuthentication(String username, String remoteAddress, Instant createdAt,
+        boolean rememberMe) implements Serializable {
 
     public static final String SESSION_ATTRIBUTE = "SERVERDASH_PENDING_2FA";
 

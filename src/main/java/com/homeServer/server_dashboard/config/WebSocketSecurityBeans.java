@@ -21,10 +21,10 @@ public class WebSocketSecurityBeans {
                 MessageMatcherDelegatingAuthorizationManager.builder();
         return messages
                 .simpTypeMatchers(CONNECT, UNSUBSCRIBE, DISCONNECT, HEARTBEAT).permitAll()
-                .simpSubscribeDestMatchers("/topic/public").permitAll()
-                // Os dois topicos so' publicam leitura (metricas de processos, servicos e containers),
-                // entao VIEWER acompanha; as acoes de escrita continuam sendo HTTP, restritas a ADMIN.
-                .simpSubscribeDestMatchers("/topic/admin", "/topic/docker").hasAnyRole("VIEWER", "ADMIN")
+                // Os tres topicos so' publicam leitura (metricas de hardware, processos, servicos e
+                // containers); nenhum fica mais aberto a anonimo agora que o dashboard inteiro exige
+                // login — as acoes de escrita continuam sendo HTTP, restritas a ADMIN.
+                .simpSubscribeDestMatchers("/topic/public", "/topic/admin", "/topic/docker").hasAnyRole("VIEWER", "ADMIN")
                 .simpTypeMatchers(MESSAGE).denyAll()
                 .anyMessage().denyAll()
                 .build();
