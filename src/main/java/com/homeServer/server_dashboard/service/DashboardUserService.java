@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.homeServer.server_dashboard.model.DashboardRole;
 import com.homeServer.server_dashboard.model.DashboardUser;
 import com.homeServer.server_dashboard.repository.DashboardUserRepository;
+import com.homeServer.server_dashboard.repository.PersistentLoginTokenRepository;
 
 /**
  * Regras de negocio da gestao de usuarios.
@@ -37,10 +38,13 @@ public class DashboardUserService {
 
     private final DashboardUserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final PersistentLoginTokenRepository persistentLoginTokenRepository;
 
-    public DashboardUserService(DashboardUserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public DashboardUserService(DashboardUserRepository userRepository, PasswordEncoder passwordEncoder,
+                                PersistentLoginTokenRepository persistentLoginTokenRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.persistentLoginTokenRepository = persistentLoginTokenRepository;
     }
 
     @Transactional(readOnly = true)
@@ -99,6 +103,7 @@ public class DashboardUserService {
 
         if (!enabled) {
             ensureNotTheLastActiveAdmin(user, "desabilitar");
+            persistentLoginTokenRepository.deleteByUsername(user.getUsername());
         }
 
         user.setEnabled(enabled);
@@ -117,6 +122,7 @@ public class DashboardUserService {
         validatePassword(newRawPassword);
         DashboardUser user = requireById(identifier);
         user.setPasswordHash(passwordEncoder.encode(newRawPassword));
+        persistentLoginTokenRepository.deleteByUsername(user.getUsername());
         log.info("[ServerDash] senha do usuario '{}' redefinida por '{}'", user.getUsername(), actingUsername);
         return userRepository.save(user);
     }
@@ -133,6 +139,7 @@ public class DashboardUserService {
         }
         validatePassword(newPassword);
         user.setPasswordHash(passwordEncoder.encode(newPassword));
+        persistentLoginTokenRepository.deleteByUsername(user.getUsername());
         userRepository.save(user);
         log.info("[ServerDash] usuario '{}' trocou a propria senha", user.getUsername());
     }
@@ -154,6 +161,7 @@ public class DashboardUserService {
         DashboardUser user = requireById(identifier);
         ensureNotSelf(user, actingUsername, "Nao e' possivel remover a propria conta");
         ensureNotTheLastActiveAdmin(user, "remover");
+        persistentLoginTokenRepository.deleteByUsername(user.getUsername());
         userRepository.delete(user);
         log.info("[ServerDash] usuario '{}' removido por '{}'", user.getUsername(), actingUsername);
     }

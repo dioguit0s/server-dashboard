@@ -108,10 +108,20 @@ class RoleAuthorizationIntegrationTest {
 
     // --- Sem autenticacao -------------------------------------------------
 
+    /**
+     * Nada fica fora do login: o dashboard e as APIs de metricas eram publicos por design ate a
+     * issue #21, mas expunham dados do servidor a qualquer acesso — agora exigem sessao, igual ao
+     * resto das telas protegidas.
+     */
     @Test
-    void anonymousStillSeesThePublicDashboard() throws Exception {
-        mockMvc.perform(get("/")).andExpect(status().isOk());
-        mockMvc.perform(get("/api/metrics/public")).andExpect(status().isOk());
+    void anonymousIsSentToTheLoginPageEvenForThePreviouslyPublicDashboard() throws Exception {
+        mockMvc.perform(get("/")).andExpect(status().is3xxRedirection());
+        mockMvc.perform(get("/charts")).andExpect(status().is3xxRedirection());
+        mockMvc.perform(get("/cpu-details")).andExpect(status().is3xxRedirection());
+        mockMvc.perform(get("/disk-details")).andExpect(status().is3xxRedirection());
+        mockMvc.perform(get("/ram-details")).andExpect(status().is3xxRedirection());
+        mockMvc.perform(get("/api/metrics/public")).andExpect(status().is3xxRedirection());
+        mockMvc.perform(get("/api/metrics/history")).andExpect(status().is3xxRedirection());
     }
 
     @Test

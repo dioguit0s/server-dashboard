@@ -16,7 +16,7 @@ O projeto vai além da simples visualização de métricas, oferecendo agora um 
 
 ## 🚀 Funcionalidades
 
-### 📊 Monitoramento em Tempo Real (Público)
+### 📊 Monitoramento em Tempo Real
 Acesso instantâneo às métricas vitais do servidor via **WebSockets (STOMP)** com fallback automático para Polling.
 * **Hardware (OSHI):**
     * **CPU:** Carga do sistema e monitoramento térmico por núcleo.
@@ -37,7 +37,14 @@ Implementação de **Spring Security** para proteção de áreas sensíveis.
   Authenticator, Aegis, 1Password e afins, com QR code gerado pelo próprio servidor e 10 códigos de
   recuperação de uso único. Pode ser tornado obrigatório para todo `ADMIN`.
 * **Proteção contra brute-force:** Rate limiting no login — após N falhas o IP de origem é bloqueado por uma janela configurável, com uma trava global de reserva e registro em `WARN` para auditoria. Vale para os dois passos do login (senha e segundo fator).
-* **Segregação:** Dados públicos (Dashboard) vs Dados sensíveis (Processos, Serviços e Containers).
+* **Tudo atrás de login:** nenhuma página ou API do dashboard é acessível sem autenticação — inclusive
+  o painel principal, os detalhes de CPU/RAM/disco e o histórico de métricas. `VIEWER` já basta para
+  ler; `ADMIN` acrescenta as ações de escrita e a gestão de usuários.
+* **Lembrar de mim:** cookie opcional de sessão estendida, com token persistente por dispositivo
+  guardado no H2 (revogável — some ao trocar a senha, desabilitar ou remover a conta). Uma vez emitido,
+  o cookie também dispensa o código 2FA em acessos futuros do mesmo dispositivo. Duração configurável
+  via `DASHBOARD_REMEMBER_ME_VALIDITY_DAYS` (30 dias por padrão); defina `DASHBOARD_REMEMBER_ME_KEY`
+  em produção, senão uma chave aleatória é sorteada a cada restart e invalida os cookies já emitidos.
 * **Cookie CSRF legível por JS (trade-off intencional):** o token CSRF é gravado com
   `CookieCsrfTokenRepository.withHttpOnlyFalse()`
   (`SecurityConfig.java`), ou seja, o cookie `XSRF-TOKEN` **não** é `HttpOnly`. Isso é o padrão do
@@ -176,6 +183,14 @@ Ferramentas da área logada:
     > caso contrário um cliente pode forjar o IP e escapar do bloqueio. A trava global
     > (`DASHBOARD_LOGIN_GLOBAL_MAX_ATTEMPTS`) existe justamente como rede de proteção para esse cenário.
 
+    Opcionalmente, ajuste o "lembrar de mim" (valores abaixo são os padrões):
+    ```properties
+    # Chave usada para assinar o cookie; fixe em producao para sobreviver a restarts/deploys
+    DASHBOARD_REMEMBER_ME_KEY=
+    # Validade do token persistente, em dias
+    DASHBOARD_REMEMBER_ME_VALIDITY_DAYS=30
+    ```
+
     **Origens do WebSocket (obrigatório fora de desenvolvimento):**
     O handshake SockJS/STOMP é liberado por origem. O padrão de fábrica é o curinga `*`, e com ele
     qualquer página aberta em outra aba por um admin autenticado consegue abrir a conexão com o
@@ -207,7 +222,7 @@ Ferramentas da área logada:
     ```
 
 4.  **Acesse:**
-    * **Dashboard Público:** `http://localhost:8080`
+    * **Dashboard:** `http://localhost:8080` (após login)
     * **Área Admin:** Clique em "Login" e use as credenciais configuradas.
     * **Containers:** `http://localhost:8080/containers` (após login)
     * **Logs de container:** `http://localhost:8080/logs?container=<ID>` (após login)
