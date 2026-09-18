@@ -183,6 +183,20 @@ Ferramentas da área logada:
     > caso contrário um cliente pode forjar o IP e escapar do bloqueio. A trava global
     > (`DASHBOARD_LOGIN_GLOBAL_MAX_ATTEMPTS`) existe justamente como rede de proteção para esse cenário.
 
+    Opcionalmente, ajuste o ritmo das coletas periódicas (valores abaixo são os padrões):
+    ```properties
+    # Intervalo entre publicações de métricas no WebSocket (ms)
+    DASHBOARD_METRICS_INTERVAL_MS=1000
+    # Intervalo entre publicações do estado dos containers (ms)
+    DASHBOARD_DOCKER_INTERVAL_MS=10000
+    ```
+
+    > As coletas só rodam quando há alguém inscrito no tópico correspondente: sem nenhuma aba
+    > aberta, o dashboard não varre processos, não abre socket nos serviços monitorados e não chama
+    > o CLI do Docker. Quem está só na home (que assina apenas `/topic/public`) também não paga pela
+    > varredura de processos, que é exclusiva da área administrativa. Em servidores modestos — ou
+    > com limitação térmica — vale aumentar os dois intervalos.
+
     Opcionalmente, ajuste o "lembrar de mim" (valores abaixo são os padrões):
     ```properties
     # Chave usada para assinar o cookie; fixe em producao para sobreviver a restarts/deploys
@@ -212,14 +226,35 @@ Ferramentas da área logada:
     > um `WARN` em vez de falhar.
 
 3.  **Execute a Aplicação:**
-    O projeto utiliza Maven Wrapper:
-    ```bash
-    # desenvolvimento (origens do WebSocket limitadas ao localhost)
-    ./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
 
-    # produção (com DASHBOARD_WS_ORIGINS configurado)
-    ./mvnw spring-boot:run
+    Em **desenvolvimento**, o Maven Wrapper roda direto (origens do WebSocket limitadas ao localhost):
+    ```bash
+    ./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
     ```
+
+    Em **produção**, empacote e execute o jar:
+    ```bash
+    ./mvnw clean package
+    java -Xms48m -Xmx192m -XX:MaxMetaspaceSize=160m -XX:ReservedCodeCacheSize=64m \
+         -Xss512k -XX:+UseSerialGC \
+         -jar target/server-dashboard-0.0.1-SNAPSHOT.jar
+    ```
+
+    > ⚠️ **Não use `./mvnw spring-boot:run` em produção.** Ele mantém duas JVMs vivas — a do Maven,
+    > que só segura o processo filho, e a da aplicação — e ativa o `spring-boot-devtools`, que
+    > carrega um classloader extra, o LiveReload e força `-XX:TieredStopAtLevel=1` (código compilado
+    > só até C1, mais lento em regime permanente). Medido num servidor de 8 GB: **550 MB** de RSS
+    > pelo Maven contra **~315 MB** rodando o jar com as flags acima. O devtools é excluído
+    > automaticamente do jar empacotado.
+
+    As flags acima dimensionam a JVM para um servidor pequeno. Sem elas, a JVM reserva por
+    ergonomia até ¼ da RAM da máquina para o heap (2 GB num servidor de 8 GB) e dimensiona as
+    estruturas auxiliares do G1 por esse teto — **~404 MB** de RSS para um conjunto vivo de ~32 MB.
+    Com muitos usuários simultâneos, suba o `-Xmx` para `256m`.
+
+    Para rodar como serviço, há um exemplo de unit systemd em
+    [`docs/deploy/server-dashboard.service`](docs/deploy/server-dashboard.service), com limites de
+    CPU e memória por cgroup.
 
 4.  **Acesse:**
     * **Dashboard:** `http://localhost:8080` (após login)

@@ -76,12 +76,34 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         config.setApplicationDestinationPrefixes("/app");
     }
 
+    /**
+     * Pool exclusivo dos heartbeats STOMP.
+     *
+     * <p>Ele era {@code @Primary} e, por isso, virava tambem o scheduler de todas as
+     * {@code @Scheduled} da aplicacao — cinco tarefas disputando as mesmas duas threads que
+     * mantinham a conexao viva. Com a coleta de metricas ocupando uma delas em tempo integral, o
+     * heartbeat podia atrasar e derrubar o WebSocket do cliente. Agora sao pools separados.
+     */
     @Bean
-    @Primary
     public TaskScheduler heartbeatScheduler() {
         ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
-        scheduler.setPoolSize(2);
+        scheduler.setPoolSize(1);
         scheduler.setThreadNamePrefix("ws-heartbeat-");
+        scheduler.initialize();
+        return scheduler;
+    }
+
+    /**
+     * Pool das tarefas {@code @Scheduled} (metricas, docker, historico, limpeza de tentativas de
+     * login). O nome {@code taskScheduler} e' o que o Spring procura por convencao, e o
+     * {@code @Primary} garante a resolucao por tipo mesmo havendo mais de um TaskScheduler.
+     */
+    @Bean(name = "taskScheduler")
+    @Primary
+    public TaskScheduler taskScheduler() {
+        ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
+        scheduler.setPoolSize(2);
+        scheduler.setThreadNamePrefix("dashboard-sched-");
         scheduler.initialize();
         return scheduler;
     }

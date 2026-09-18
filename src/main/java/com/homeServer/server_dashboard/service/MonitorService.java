@@ -14,6 +14,7 @@ import oshi.software.os.OSProcess;
 import oshi.software.os.OperatingSystem;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -26,11 +27,29 @@ public class MonitorService {
     private final OperatingSystem operatingSystem;
     private final Sensors systemSensors;
 
+    /**
+     * Amostras pedidas em sequencia mais rapida que isto reaproveitam o ultimo valor calculado.
+     * Uma taxa medida sobre uma janela de poucos milissegundos nao tem significado, e a coleta
+     * (varrer interfaces de rede, chamar updateAttributes em cada disco) nao e' de graca num
+     * servidor pequeno: a home renderiza no mesmo segundo em que o broadcast periodico roda.
+     */
+    private static final long MINIMUM_SAMPLE_INTERVAL_MILLISECONDS = 500;
+
+    private long[] previousCpuTicks;
+    private double lastCpuLoadPercentage = 0;
+    private long lastCpuSampleAtMillis = 0;
+
     private long previousBytesReceived = 0;
     private long previousBytesSent = 0;
+    private long previousNetworkSampleAtNanos = 0;
+    private NetworkInfo lastNetworkInfo = new NetworkInfo("0 B/s", "0 B/s");
+    private long lastNetworkSampleAtMillis = 0;
 
     private long previousBytesReadFromDisk = 0;
     private long previousBytesWrittenToDisk = 0;
+    private long previousDiskSampleAtNanos = 0;
+    private DiskMetrics lastDiskMetrics = null;
+    private long lastDiskSampleAtMillis = 0;
 
     private long currentProcessIdentifier;
 
@@ -40,6 +59,7 @@ public class MonitorService {
         this.operatingSystem = systemInformation.getOperatingSystem();
         this.systemSensors = hardwareLayer.getSensors();
         this.currentProcessIdentifier = ProcessHandle.current().pid();
+        this.previousCpuTicks = hardwareLayer.getProcessor().getSystemCpuLoadTicks();
     }
 
     public double getCpuTemperature() { return systemSensors.getCpuTemperature(); }
@@ -78,9 +98,24 @@ public class MonitorService {
         return physicalMemoryInfoList;
     }
 
-    public double getCpuUsage() {
+    /**
+     * Carga de CPU do sistema, calculada pelos ticks acumulados desde a amostra anterior.
+     *
+     * <p>A alternativa da OSHI, {@code getSystemCpuLoad(1000)}, bloqueia a thread chamadora pelo
+     * intervalo inteiro. Como este metodo e' chamado a cada segundo pelo broadcast, a cada minuto
+     * pelo historico e a cada renderizacao da home, aquele bloqueio mantinha uma thread do
+     * scheduler ocupada em tempo integral — e fazia cada carregamento de pagina esperar 1s.
+     */
+    public synchronized double getCpuUsage() {
+        long nowMillis = System.currentTimeMillis();
+        if (lastCpuSampleAtMillis != 0 && nowMillis - lastCpuSampleAtMillis < MINIMUM_SAMPLE_INTERVAL_MILLISECONDS) {
+            return lastCpuLoadPercentage;
+        }
         CentralProcessor centralProcessor = hardwareLayer.getProcessor();
-        return centralProcessor.getSystemCpuLoad(1000) * 100;
+        lastCpuLoadPercentage = centralProcessor.getSystemCpuLoadBetweenTicks(previousCpuTicks) * 100;
+        previousCpuTicks = centralProcessor.getSystemCpuLoadTicks();
+        lastCpuSampleAtMillis = nowMillis;
+        return lastCpuLoadPercentage;
     }
 
     // ==========================================
@@ -138,6 +173,11 @@ public class MonitorService {
     // MÉTRICAS DE DISCO ATUALIZADAS
     // ==========================================
     public synchronized DiskMetrics getAdvancedDiskMetrics() {
+        long nowMillis = System.currentTimeMillis();
+        if (lastDiskMetrics != null && nowMillis - lastDiskSampleAtMillis < MINIMUM_SAMPLE_INTERVAL_MILLISECONDS) {
+            return lastDiskMetrics;
+        }
+
         // 1. Partições / Volumes Lógicos
         List<OSFileStore> fileStoresList = operatingSystem.getFileSystem().getFileStores();
         long totalSpaceAvailable = 0;
@@ -185,21 +225,40 @@ public class MonitorService {
             ));
         }
 
-        // Calcula a taxa por segundo
-        if (previousBytesReadFromDisk == 0 || currentBytesReadFromDisk < previousBytesReadFromDisk) {
-            previousBytesReadFromDisk = currentBytesReadFromDisk;
-            previousBytesWrittenToDisk = currentBytesWrittenToDisk;
-        }
-
-        long diskReadSpeedPerSecond = currentBytesReadFromDisk - previousBytesReadFromDisk;
-        long diskWriteSpeedPerSecond = currentBytesWrittenToDisk - previousBytesWrittenToDisk;
+        // Calcula a taxa dividindo pelo tempo realmente decorrido desde a amostra anterior. A
+        // versao antiga assumia exatamente 1s entre chamadas, o que passou a ser falso quando as
+        // coletas deixaram de rodar de forma continua (agora so' ha broadcast com alguem assinando).
+        long nowNanos = System.nanoTime();
+        DiskIoInfo diskIoRate = computeIoRate(
+                currentBytesReadFromDisk, currentBytesWrittenToDisk, nowNanos);
 
         previousBytesReadFromDisk = currentBytesReadFromDisk;
         previousBytesWrittenToDisk = currentBytesWrittenToDisk;
+        previousDiskSampleAtNanos = nowNanos;
 
-        DiskIoInfo diskIoRate = new DiskIoInfo(formatRate(diskReadSpeedPerSecond), formatRate(diskWriteSpeedPerSecond));
+        lastDiskMetrics = new DiskMetrics(overallDiskInfo, logicalVolumesList, hardwareDiskInfoList, diskIoRate);
+        lastDiskSampleAtMillis = nowMillis;
+        return lastDiskMetrics;
+    }
 
-        return new DiskMetrics(overallDiskInfo, logicalVolumesList, hardwareDiskInfoList, diskIoRate);
+    private DiskIoInfo computeIoRate(long currentBytesRead, long currentBytesWritten, long nowNanos) {
+        double elapsedSeconds = elapsedSecondsSince(previousDiskSampleAtNanos, nowNanos);
+        boolean countersRestarted = currentBytesRead < previousBytesReadFromDisk
+                || currentBytesWritten < previousBytesWrittenToDisk;
+        if (elapsedSeconds <= 0 || countersRestarted) {
+            return new DiskIoInfo("0 B/s", "0 B/s");
+        }
+        return new DiskIoInfo(
+                formatRate((long) ((currentBytesRead - previousBytesReadFromDisk) / elapsedSeconds)),
+                formatRate((long) ((currentBytesWritten - previousBytesWrittenToDisk) / elapsedSeconds)));
+    }
+
+    /** Segundos entre duas leituras de {@link System#nanoTime()}; 0 quando ainda nao ha anterior. */
+    private double elapsedSecondsSince(long previousSampleAtNanos, long nowNanos) {
+        if (previousSampleAtNanos == 0) {
+            return 0;
+        }
+        return (nowNanos - previousSampleAtNanos) / 1_000_000_000d;
     }
 
     // Mantido para não quebrar controladores existentes que só buscam a métrica geral
@@ -208,6 +267,11 @@ public class MonitorService {
     }
 
     public synchronized NetworkInfo getNetworkMetrics() {
+        long nowMillis = System.currentTimeMillis();
+        if (lastNetworkSampleAtMillis != 0 && nowMillis - lastNetworkSampleAtMillis < MINIMUM_SAMPLE_INTERVAL_MILLISECONDS) {
+            return lastNetworkInfo;
+        }
+
         List<NetworkIF> networkInterfacesList = hardwareLayer.getNetworkIFs();
 
         long currentBytesReceived = 0;
@@ -222,22 +286,25 @@ public class MonitorService {
             }
         }
 
-        if (previousBytesReceived == 0 || currentBytesReceived < previousBytesReceived) {
-            previousBytesReceived = currentBytesReceived;
-            previousBytesSent = currentBytesSent;
-            return new NetworkInfo("0 B/s", "0 B/s");
-        }
+        long nowNanos = System.nanoTime();
+        double elapsedSeconds = elapsedSecondsSince(previousNetworkSampleAtNanos, nowNanos);
+        boolean countersRestarted = currentBytesReceived < previousBytesReceived
+                || currentBytesSent < previousBytesSent;
 
-        long downloadSpeedPerSecond = currentBytesReceived - previousBytesReceived;
-        long uploadSpeedPerSecond = currentBytesSent - previousBytesSent;
+        if (elapsedSeconds <= 0 || countersRestarted) {
+            lastNetworkInfo = new NetworkInfo("0 B/s", "0 B/s");
+        } else {
+            lastNetworkInfo = new NetworkInfo(
+                    formatRate((long) ((currentBytesReceived - previousBytesReceived) / elapsedSeconds)),
+                    formatRate((long) ((currentBytesSent - previousBytesSent) / elapsedSeconds))
+            );
+        }
 
         previousBytesReceived = currentBytesReceived;
         previousBytesSent = currentBytesSent;
-
-        return new NetworkInfo(
-                formatRate(downloadSpeedPerSecond),
-                formatRate(uploadSpeedPerSecond)
-        );
+        previousNetworkSampleAtNanos = nowNanos;
+        lastNetworkSampleAtMillis = nowMillis;
+        return lastNetworkInfo;
     }
 
     private String formatBytes(long bytesValue) {
@@ -271,20 +338,47 @@ public class MonitorService {
         }
     }
 
-    public List<ProcessInfo> getTopProcesses(String sortByValue, int resultLimit) {
-        var processSortingComparator = "ram".equalsIgnoreCase(sortByValue)
-                ? OperatingSystem.ProcessSorting.RSS_DESC
-                : OperatingSystem.ProcessSorting.CPU_DESC;
+    /**
+     * Os processos que mais consomem recursos, ordenados por CPU e por RAM, a partir de uma unica
+     * varredura.
+     *
+     * <p>{@code OperatingSystem.getProcesses(filtro, ordem, limite)} monta o objeto de <b>todos</b>
+     * os processos antes de ordenar e cortar — o limite nao evita a leitura de /proc. Pedir as duas
+     * ordenacoes em chamadas separadas custava duas varreduras completas por segundo; aqui a mesma
+     * lista e' ordenada duas vezes, o que e' irrisorio perto do custo de ler /proc.
+     */
+    public TopProcesses getTopProcesses(int resultLimit) {
+        List<OSProcess> allProcessesList = operatingSystem.getProcesses(null, null, 0);
 
-        List<OSProcess> activeProcessesList = operatingSystem.getProcesses(null, processSortingComparator, resultLimit);
-        List<ProcessInfo> topProcessesResultList = new ArrayList<>();
+        List<OSProcess> validProcessesList = new ArrayList<>(allProcessesList.size());
+        for (OSProcess currentProcess : allProcessesList) {
+            if (currentProcess != null && currentProcess.getState() != OSProcess.State.INVALID) {
+                validProcessesList.add(currentProcess);
+            }
+        }
 
         long totalSystemMemory = hardwareLayer.getMemory().getTotal();
         int logicalProcessorCount = hardwareLayer.getProcessor().getLogicalProcessorCount();
 
-        for (OSProcess currentProcess : activeProcessesList) {
-            if (currentProcess == null || currentProcess.getState() == OSProcess.State.INVALID) continue;
+        return new TopProcesses(
+                toTopProcessInfoList(validProcessesList, OperatingSystem.ProcessSorting.CPU_DESC,
+                        resultLimit, totalSystemMemory, logicalProcessorCount),
+                toTopProcessInfoList(validProcessesList, OperatingSystem.ProcessSorting.RSS_DESC,
+                        resultLimit, totalSystemMemory, logicalProcessorCount));
+    }
 
+    private List<ProcessInfo> toTopProcessInfoList(List<OSProcess> processesList,
+                                                   Comparator<OSProcess> sortingComparator,
+                                                   int resultLimit,
+                                                   long totalSystemMemory,
+                                                   int logicalProcessorCount) {
+        List<OSProcess> sortedProcessesList = new ArrayList<>(processesList);
+        sortedProcessesList.sort(sortingComparator);
+
+        int effectiveLimit = Math.min(Math.max(resultLimit, 0), sortedProcessesList.size());
+        List<ProcessInfo> topProcessesResultList = new ArrayList<>(effectiveLimit);
+
+        for (OSProcess currentProcess : sortedProcessesList.subList(0, effectiveLimit)) {
             String currentProcessName = currentProcess.getName();
             if(currentProcess.getProcessID() == this.currentProcessIdentifier) {
                 currentProcessName = "Dashboard";
@@ -312,6 +406,9 @@ public class MonitorService {
     // ==========================================
     // CLASSES DE ESTRUTURA DE DADOS
     // ==========================================
+
+    /** As duas ordenacoes produzidas por uma unica varredura de processos. */
+    public record TopProcesses(List<ProcessInfo> byCpuUsage, List<ProcessInfo> byRamUsage) {}
 
     public static class ProcessInfo {
         public final String name;

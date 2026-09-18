@@ -1,0 +1,55 @@
+# Exemplo de unit systemd para rodar o dashboard como serviço.
+#
+# Instalação:
+#   sudo cp docs/deploy/server-dashboard.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now server-dashboard
+#
+# Ajuste User, WorkingDirectory e o caminho do jar para a sua instalação.
+
+[Unit]
+Description=Server Dashboard
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=dashboard
+Group=docker
+WorkingDirectory=/opt/server-dashboard
+
+# As credenciais e as origens do WebSocket ficam fora da unit, num arquivo só do serviço
+# (chmod 600): DASHBOARD_ADMIN_USERNAME, DASHBOARD_ADMIN_PASSWORD_HASH, DASHBOARD_WS_ORIGINS,
+# DASHBOARD_REMEMBER_ME_KEY, etc.
+EnvironmentFile=/etc/server-dashboard.env
+
+# Dimensionamento da JVM para um servidor pequeno. Sem isto, a JVM reserva até 1/4 da RAM da
+# maquina para o heap e dimensiona as estruturas do G1 por esse teto, mesmo com o conjunto vivo
+# real na casa das dezenas de MB.
+ExecStart=/usr/bin/java \
+    -Xms48m -Xmx192m \
+    -XX:MaxMetaspaceSize=160m \
+    -XX:ReservedCodeCacheSize=64m \
+    -Xss512k \
+    -XX:+UseSerialGC \
+    -jar /opt/server-dashboard/server-dashboard.jar
+
+Restart=on-failure
+RestartSec=10
+SuccessExitStatus=143
+
+# Teto de recursos por cgroup v2. MemoryHigh estrangula em vez de matar (diferente de MemoryMax,
+# que aciona o OOM killer); CPUQuota limita o quanto o serviço pode aquecer a máquina — util em
+# servidor com pouca folga térmica. Ajuste conforme o seu hardware.
+MemoryHigh=400M
+CPUQuota=25%
+
+# Endurecimento básico: o serviço precisa apenas do próprio diretório e do socket do Docker.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+ReadWritePaths=/opt/server-dashboard
+
+[Install]
+WantedBy=multi-user.target
