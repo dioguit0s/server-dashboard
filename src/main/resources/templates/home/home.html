@@ -196,6 +196,51 @@
                 </div>
             </div>
 
+            <!-- INTERNET SPEED -->
+            <div class="col-12">
+                <div class="card card-metric">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center justify-content-between gap-2 mb-4">
+                            <span class="card-title-label">Velocidade da Internet</span>
+                            <div class="d-flex align-items-center gap-2">
+                                <span id="speedPhase" class="badge badge-soft px-2 py-1 d-none"></span>
+                                <button id="speedRunBtn" type="button" class="btn btn-outline-primary btn-sm text-nowrap d-none" aria-label="Testar agora" title="Testar agora">
+                                    <i class="bi bi-speedometer2" aria-hidden="true"></i><span class="d-none d-sm-inline ms-1">Testar agora</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="row text-center g-0">
+                            <div class="col-4 border-end pe-2 net-cell net-cell-down" style="border-color: var(--border-hairline) !important;">
+                                <div class="net-label">
+                                    <i class="bi bi-download net-icon net-icon-down" aria-hidden="true"></i>
+                                    <span>Download</span>
+                                </div>
+                                <div class="speed-value"><span id="speedDownText" class="net-throughput">--</span> <span class="unit-label">Mbps</span></div>
+                            </div>
+                            <div class="col-4 border-end px-2 net-cell net-cell-up" style="border-color: var(--border-hairline) !important;">
+                                <div class="net-label">
+                                    <i class="bi bi-upload net-icon net-icon-up" aria-hidden="true"></i>
+                                    <span>Upload</span>
+                                </div>
+                                <div class="speed-value"><span id="speedUpText" class="net-throughput">--</span> <span class="unit-label">Mbps</span></div>
+                            </div>
+                            <div class="col-4 ps-2 net-cell">
+                                <div class="net-label">
+                                    <i class="bi bi-activity net-icon" aria-hidden="true"></i>
+                                    <span>Ping</span>
+                                </div>
+                                <div class="speed-value"><span id="speedPingText" class="net-throughput">--</span> <span class="unit-label">ms</span></div>
+                            </div>
+                        </div>
+                        <div class="metric-footer speed-footer">
+                            <span id="speedLastText">Nenhum teste executado ainda</span>
+                            <span id="speedJitterText"></span>
+                        </div>
+                        <div id="speedErrorText" class="small text-danger mt-2 d-none"></div>
+                    </div>
+                </div>
+            </div>
+
         </div>
 
         <div class="text-center mt-5" style="font-family: var(--font-mono); font-size: 11px; color: var(--text-faint); letter-spacing: 1px;">
@@ -208,6 +253,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
 <script th:src="@{/home/js/websocket-utils.js}"></script>
+<script th:src="@{/home/js/csrf-utils.js}"></script>
 <script th:src="@{/home/js/dashboard.js?v=2}"></script>
+<script th:src="@{/home/js/speedtest.js}"></script>
 </body>
 </html>

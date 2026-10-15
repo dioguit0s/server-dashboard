@@ -23,6 +23,9 @@ Acesso instantâneo às métricas vitais do servidor via **WebSockets (STOMP)** 
     * **Memória:** Uso real e disponível.
     * **Armazenamento:** Análise de partições e espaço livre.
     * **Rede:** Taxas de Download e Upload em tempo real.
+    * **Velocidade da Internet:** teste de velocidade do link (download, upload, ping e jitter) rodado
+      pelo próprio servidor contra a Cloudflare — mede a internet da rede, não o tráfego da placa.
+      Sob demanda (botão "Testar agora", só `ADMIN`) ou periódico.
 * **Visualização:** Dashboards interativos e gráficos históricos (janela de 60s) renderizados com Chart.js.
 
 ### 🛡️ Segurança e Administração
@@ -196,6 +199,21 @@ Ferramentas da área logada:
     > o CLI do Docker. Quem está só na home (que assina apenas `/topic/public`) também não paga pela
     > varredura de processos, que é exclusiva da área administrativa. Em servidores modestos — ou
     > com limitação térmica — vale aumentar os dois intervalos.
+
+    Opcionalmente, configure o teste de velocidade da internet (valores abaixo são os padrões):
+    ```properties
+    # Intervalo entre testes automáticos, em minutos; 0 = só sob demanda (botão na home, ADMIN)
+    DASHBOARD_SPEEDTEST_INTERVAL_MINUTES=0
+    # Duração de cada fase (download e upload), em segundos, e conexões paralelas
+    DASHBOARD_SPEEDTEST_PHASE_SECONDS=8
+    DASHBOARD_SPEEDTEST_STREAMS=4
+    # Servidor de teste (endpoints /__down e /__up)
+    DASHBOARD_SPEEDTEST_URL=https://speed.cloudflare.com
+    ```
+
+    > Cada teste baixa e envia dados de verdade — num link de 500 Mbps, algo como 500 MB de download
+    > e outro tanto de upload. Em conexões com franquia, prefira intervalos longos (ex.: `360`). O
+    > histórico (últimos 10 testes) fica só em memória e zera a cada restart.
 
     Opcionalmente, ajuste o "lembrar de mim" (valores abaixo são os padrões):
     ```properties

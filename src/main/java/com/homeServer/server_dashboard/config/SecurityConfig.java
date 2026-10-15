@@ -82,6 +82,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/docker/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.POST, "/api/services/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/api/services/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.POST, "/api/speedtest/**").hasRole("ADMIN")
                 // A propria conta (troca de senha e 2FA) e' de quem esta logado, qualquer que seja o
                 // papel. Precisa vir antes de /api/**, que casaria /api/account/** primeiro.
                 .requestMatchers("/account/**", "/api/account/**").authenticated()
