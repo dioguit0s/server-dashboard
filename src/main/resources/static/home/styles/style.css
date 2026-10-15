@@ -729,6 +729,13 @@ a.text-reset .card-metric:hover {
     color: var(--text-heading);
 }
 
+/* Velocidade da internet: no celular a unidade desce para baixo do número, para as três colunas
+   caberem sem quebrar no meio */
+@media (max-width: 575.98px) {
+    .speed-value .unit-label { display: block; margin-left: 0; }
+    .speed-footer { flex-direction: column; align-items: flex-start; gap: 0.25rem; }
+}
+
 /* Estados de métrica (processos) */
 .text-signal-mid  { color: var(--accent2) !important; font-weight: 500; }
 .text-signal-high { color: var(--cp-bone-bright) !important; font-weight: 500; }
