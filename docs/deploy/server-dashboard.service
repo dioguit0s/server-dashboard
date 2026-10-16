@@ -20,7 +20,8 @@ WorkingDirectory=/opt/server-dashboard
 
 # As credenciais e as origens do WebSocket ficam fora da unit, num arquivo só do serviço
 # (chmod 600): DASHBOARD_ADMIN_USERNAME, DASHBOARD_ADMIN_PASSWORD_HASH, DASHBOARD_WS_ORIGINS,
-# DASHBOARD_REMEMBER_ME_KEY, etc.
+# DASHBOARD_REMEMBER_ME_KEY, etc. Atras do Cloudflare Tunnel, considere SERVER_ADDRESS=127.0.0.1
+# (so' o cloudflared alcanca a porta) e, com cloudflared em Docker, DASHBOARD_TRUSTED_PROXIES.
 EnvironmentFile=/etc/server-dashboard.env
 
 # Dimensionamento da JVM para um servidor pequeno. Sem isto, a JVM reserva até 1/4 da RAM da

@@ -19,10 +19,11 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Rate limiting das tentativas de login: acumula falhas por IP de origem e bloqueia
  * temporariamente o IP depois de {@code maxAttempts} falhas, liberando quando a janela expira.
  *
- * <p>Como o IP efetivo vem do {@code X-Forwarded-For} (server.forward-headers-strategy=framework),
- * ele e' forjavel quando nao ha um reverse proxy confiavel na frente. Por isso existe tambem uma
- * trava global de reserva: um total de falhas vindas de qualquer IP tranca o login inteiro pela
- * mesma janela. Configure {@code global-max-attempts=0} para desativa-la.
+ * <p>O IP efetivo vem do {@code CF-Connecting-IP}, aceito so' de proxies confiaveis (veja
+ * {@code ClientIpConfig}). Se o cloudflared nao estiver entre eles, ou se a porta ficar exposta a
+ * outro proxy, o IP pode ser forjado. Por isso existe tambem uma trava global de reserva: um total
+ * de falhas vindas de qualquer IP tranca o login inteiro pela mesma janela. Configure
+ * {@code global-max-attempts=0} para desativa-la.
  */
 @Service
 public class LoginAttemptService {
@@ -185,7 +186,7 @@ public class LoginAttemptService {
 
     /**
      * Mantem o mapa limitado: primeiro descarta expirados, depois remove o registro mais antigo.
-     * O IP e' controlado pelo cliente (X-Forwarded-For), entao o mapa nao pode crescer sem limite.
+     * Um atacante com muitos IPs reais (botnet) pode encher o mapa, entao ele nao pode crescer sem limite.
      */
     private void ensureCapacityFor(Instant now) {
         if (attemptsByAddress.size() < maxTrackedAddresses) {

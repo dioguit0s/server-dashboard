@@ -181,10 +181,21 @@ Ferramentas da área logada:
     DASHBOARD_LOGIN_MAX_TRACKED_IPS=10000
     ```
 
-    > ⚠️ O IP de origem é lido respeitando `X-Forwarded-For` (`server.forward-headers-strategy=framework`).
-    > Se houver um reverse proxy na frente, configure-o para **sobrescrever** esse header em vez de anexá-lo —
-    > caso contrário um cliente pode forjar o IP e escapar do bloqueio. A trava global
-    > (`DASHBOARD_LOGIN_GLOBAL_MAX_ATTEMPTS`) existe justamente como rede de proteção para esse cenário.
+    > ⚠️ **IP de origem atrás do Cloudflare Tunnel.** O IP usado no bloqueio vem do header
+    > `CF-Connecting-IP`, e só é aceito quando a conexão chega de um proxy confiável — por padrão, o
+    > loopback (cloudflared rodando no mesmo host). O `X-Forwarded-For` **não** é usado: a Cloudflare
+    > acrescenta ao valor que o cliente mandou, e o primeiro item continuaria forjável. Acesso direto
+    > pela LAN ignora o header e conta o IP real da conexão.
+    > ```properties
+    > # Header com o IP do visitante (padrao: o da Cloudflare)
+    > DASHBOARD_CLIENT_IP_HEADER=CF-Connecting-IP
+    > # Regex (formato do Tomcat) dos proxies cujo header e' aceito; vazio = so' loopback.
+    > # Com o cloudflared em container Docker, inclua o IP da bridge:
+    > DASHBOARD_TRUSTED_PROXIES=127\.0\.0\.1|0:0:0:0:0:0:0:1|172\.17\.0\.\d+
+    > ```
+    > Para que só o cloudflared alcance a aplicação, faça o Spring escutar apenas no loopback com
+    > `SERVER_ADDRESS=127.0.0.1` (o acesso pela LAN na porta 8080 deixa de funcionar). A trava global
+    > (`DASHBOARD_LOGIN_GLOBAL_MAX_ATTEMPTS`) continua como rede de proteção.
 
     Opcionalmente, ajuste o ritmo das coletas periódicas (valores abaixo são os padrões):
     ```properties
