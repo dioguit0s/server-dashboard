@@ -34,3 +34,8 @@ build/
 
 ### Environment (never commit secrets) ###
 .env
+
+### Dados de runtime (banco H2: metricas, usuarios, segredos 2FA, tokens) ###
+data/*.mv.db
+data/*.trace.db
+data/*.lock.db
